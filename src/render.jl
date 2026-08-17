@@ -1,0 +1,712 @@
+## Description #############################################################################
+#
+# Rendering of the header, tree view, status bar, and help dialog.
+#
+############################################################################################
+
+"""
+    HELP_ENTRIES
+
+Key bindings shown in the help dialog as tuples `(section, key, description)`.
+"""
+const HELP_ENTRIES = (
+    (:tree,    "↑ / ↓",       "Move the cursor / scroll the code"),
+    (:tree,    "PgUp / PgDn", "Move one page"),
+    (:tree,    "Home / End",  "Go to the first / last row"),
+    (:tree,    "Enter / →",   "Enter the node (code for a leaf)"),
+    (:tree,    "Bksp / ←",    "Go back to the parent node"),
+    (:tree,    "Tab, 1 / 2",  "Focus the list / source panel"),
+    (:tree,    "0 / \$",      "Code: go to the line start / end"),
+    (:tree,    "^D / ^U",     "Code: scroll half a page"),
+    (:tree,    "i",           "Inspect type instabilities"),
+    (:tree,    "u",           "Toggle bytes / allocs (allocations)"),
+    (:tree,    "q",           "Quit the application"),
+    (:inspect, "↑ / ↓",       "Select a call site"),
+    (:inspect, "Enter / →",   "Descend into the call site"),
+    (:inspect, "Bksp / ←",    "Ascend to the caller"),
+    (:inspect, "Tab, 1 / 2",  "Focus the code / call-site pane"),
+    (:inspect, "t",           "Toggle source / typed IR"),
+    (:inspect, "q / Esc",     "Close the inspector"),
+    (:general, "+ / -",       "Maximize / restore the focused panel"),
+    (:general, "?",           "Toggle this help dialog"),
+)
+
+"""
+    HELP_SECTIONS
+
+Display titles of the help dialog sections.
+"""
+const HELP_SECTIONS = (
+    :tree => "Main View",
+    :inspect => "Type Inspector",
+    :general => "General"
+)
+
+"""
+    view(m::ProfileViewer, f::Frame) -> Nothing
+
+Render the full application frame for the model `m` into `f`: header, active view (tree
+or detail), status bar, and, when open, the help dialog.
+"""
+function view(m::ProfileViewer, f::Frame)
+    buf = f.buffer
+    area = f.area
+
+    if (area.width < 20) || (area.height < 6)
+        set_string!(buf, area.x, area.y, "Terminal too small", tstyle(:error, bold = true))
+        return nothing
+    end
+
+    header_h = ((m.mode == :inspect) || (m.compile !== nothing) ||
+        (m.inference_samples > 0)) ? 4 : 3
+
+    rects = split_layout(Layout(Vertical, [Fixed(header_h), Fill(), Fixed(1)]), area)
+    (length(rects) < 3) && return nothing
+
+    if m.mode == :inspect
+        render_inspect_header!(m, buf, rects[1])
+        render_inspect!(m, buf, rects[2])
+    else
+        render_header!(m, buf, rects[1])
+        render_main!(m, buf, rects[2])
+    end
+
+    render_status!(m, buf, rects[3])
+    m.help && render_help!(buf, area)
+
+    return nothing
+end
+
+"""
+    render_header!(m::ProfileViewer, buf::Buffer, rect::Rect) -> Nothing
+
+Render the header block with the general information about the profile into `buf` inside
+`rect`, mutating `buf`.
+"""
+function render_header!(m::ProfileViewer, buf::Buffer, rect::Rect)
+    title = if m.unit === :time
+        " Inference Profile "
+    elseif m.unit === :invalidations
+        " Invalidations "
+    elseif (m.unit === :bytes) || (m.unit === :allocs)
+        " Allocations "
+    else
+        " Profile "
+    end
+
+    block = Block(;
+        title = title,
+        title_style = tstyle(:title, bold = true),
+        title_right = " TerminalScope.jl ",
+        title_right_style = tstyle(:text_dim),
+        border_style = tstyle(:border_focus),
+        box = BOX_ROUNDED
+    )
+    inner = render(block, rect, buf)
+    ((inner.height < 1) || (inner.width < 1)) && return nothing
+
+    label = tstyle(:text_dim)
+    value = tstyle(:accent, bold = true)
+    x = inner.x + 1
+    y = inner.y
+    mx = right(inner)
+
+    nodes_str = string(format_count(length(m.rows)), " / ", format_count(m.total_nodes))
+
+    if m.unit === :time
+        x = set_string!(buf, x, y, "Inf. Time ", label; max_x = mx)
+        x = set_string!(buf, x, y, format_seconds(m.nsamples / 1e9), value; max_x = mx)
+        x = set_string!(buf, x, y, "   Nodes ", label; max_x = mx)
+        set_string!(buf, x, y, nodes_str, value; max_x = mx)
+        return nothing
+    end
+
+    if (m.unit === :bytes) || (m.unit === :allocs)
+        bytes = m.unit === :bytes ? m.root.count : m.root.allocs
+        nalloc = m.unit === :bytes ? m.root.allocs : m.root.count
+
+        x = set_string!(buf, x, y, "Memory ", label; max_x = mx)
+        x = set_string!(buf, x, y, format_bytes(bytes), value; max_x = mx)
+        x = set_string!(buf, x, y, "   Allocs ", label; max_x = mx)
+        x = set_string!(buf, x, y, format_count(nalloc), value; max_x = mx)
+        x = set_string!(buf, x, y, "   Sorting by ", label; max_x = mx)
+        x = set_string!(
+            buf,
+            x,
+            y,
+            m.unit === :bytes ? "memory" : "allocs",
+            value;
+            max_x = mx
+        )
+        x = set_string!(buf, x, y, "   Nodes ", label; max_x = mx)
+        set_string!(buf, x, y, nodes_str, value; max_x = mx)
+        return nothing
+    end
+
+    if m.unit === :invalidations
+        x = set_string!(buf, x, y, "Invalidated ", label; max_x = mx)
+        x = set_string!(buf, x, y, format_count(m.nsamples), value; max_x = mx)
+        x = set_string!(buf, x, y, "   Triggers ", label; max_x = mx)
+        x = set_string!(
+            buf,
+            x,
+            y,
+            format_count(length(m.root.children)),
+            value;
+            max_x = mx
+        )
+        x = set_string!(buf, x, y, "   Nodes ", label; max_x = mx)
+        set_string!(buf, x, y, nodes_str, value; max_x = mx)
+        return nothing
+    end
+
+    x = set_string!(buf, x, y, "Samples ", label; max_x = mx)
+    x = set_string!(buf, x, y, format_count(m.nsamples), value; max_x = mx)
+    x = set_string!(buf, x, y, "   Delay ", label; max_x = mx)
+    x = set_string!(buf, x, y, format_seconds(m.delay), value; max_x = mx)
+    x = set_string!(buf, x, y, "   Est. Time ", label; max_x = mx)
+    x = set_string!(buf, x, y, format_seconds(m.nsamples * m.delay), value; max_x = mx)
+    x = set_string!(buf, x, y, "   Nodes ", label; max_x = mx)
+    set_string!(buf, x, y, nodes_str, value; max_x = mx)
+
+    (inner.height >= 2) && render_header_extra!(m, buf, inner.x + 1, y + 1, mx)
+    return nothing
+end
+
+"""
+    render_header_extra!(m::ProfileViewer, buf::Buffer, x::Int, y::Int, mx::Int) -> Nothing
+
+Render the second header line with the type inference sample aggregate and the wall-clock
+compilation measurements, when available, into `buf` at `(x, y)` clipped to `mx`.
+"""
+function render_header_extra!(m::ProfileViewer, buf::Buffer, x::Int, y::Int, mx::Int)
+    label = tstyle(:text_dim)
+    value = tstyle(:accent, bold = true)
+
+    if m.inference_samples > 0
+        pct = m.nsamples == 0 ? 0.0 : 100 * m.inference_samples / m.nsamples
+        x = set_string!(buf, x, y, "Inference ", label; max_x = mx)
+        x = set_string!(
+            buf,
+            x,
+            y,
+            string(format_count(m.inference_samples), " (", format_pct(pct), ")"),
+            Style(; fg = CYAN.c400, bold = true);
+            max_x = mx
+        )
+        x = set_string!(buf, x, y, "   ", label; max_x = mx)
+    end
+
+    if m.compile !== nothing
+        c = m.compile
+        pct_run = c.elapsed > 0 ? 100 * c.compile / c.elapsed : 0.0
+        pct_re = c.compile > 0 ? 100 * c.recompile / c.compile : 0.0
+
+        x = set_string!(buf, x, y, "Compile ", label; max_x = mx)
+        x = set_string!(buf, x, y, format_seconds(c.compile), value; max_x = mx)
+        set_string!(
+            buf,
+            x,
+            y,
+            string(
+                " (",
+                format_pct(pct_run),
+                " of run, ",
+                format_pct(pct_re),
+                " recompilation)"
+            ),
+            label;
+            max_x = mx
+        )
+    end
+
+    return nothing
+end
+
+"""
+    tree_columns(row_w::Int, count_w::Int) -> NTuple{4, Int}
+
+Return the widths `(pct_w, bar_w, count_w, right_w)` of the right-aligned columns of a
+frame list row of `row_w` characters: the percentage of the total cost, the mini cost
+bar, the cost cell, and the full right-aligned region. The bar and the cost cell are
+dropped (width `0`) on narrow rows.
+"""
+function tree_columns(row_w::Int, count_w::Int)
+    pct_w = 6
+    bar_w = row_w >= 60 ? 8 : 0
+    right_w = pct_w + 2 + count_w + (bar_w > 0 ? 2 + bar_w : 0)
+
+    if row_w < right_w + 15
+        bar_w = 0
+        right_w = pct_w + 2 + count_w
+    end
+
+    if row_w < right_w + 10
+        count_w = 0
+        right_w = pct_w
+    end
+
+    return (pct_w, bar_w, count_w, right_w)
+end
+
+"""
+    render_main!(m::ProfileViewer, buf::Buffer, rect::Rect) -> Nothing
+
+Render the main view into `buf` inside `rect`: the frame list on the left and the source
+panel of the selected row on the right. When the zoom is active, only the focused panel
+renders, filling the whole `rect`.
+"""
+function render_main!(m::ProfileViewer, buf::Buffer, rect::Rect)
+    if m.zoom
+        if m.tree_focus === :list
+            render_tree!(m, buf, rect; focused = true)
+        else
+            render_source_panel!(m, buf, rect; focused = true)
+        end
+
+        return nothing
+    end
+
+    cols = split_layout(Layout(Horizontal, [Percent(45), Fill()]), rect)
+    (length(cols) < 2) && return nothing
+
+    render_tree!(m, buf, cols[1]; focused = m.tree_focus === :list)
+    render_source_panel!(m, buf, cols[2]; focused = m.tree_focus === :code)
+    return nothing
+end
+
+"""
+    render_tree!(m::ProfileViewer, buf::Buffer, rect::Rect; focused::Bool = true) -> Nothing
+
+Render the scrollable frame list of the current node into `buf` inside `rect`, mutating
+`buf` and updating `m.visible_h` and `m.scroll`. The list is topped by a header line
+labeling the columns when there is room for it. `focused` selects the border highlight.
+"""
+function render_tree!(m::ProfileViewer, buf::Buffer, rect::Rect; focused::Bool = true)
+    block = Block(;
+        title = " [1] Frames ",
+        title_style = tstyle(:title, bold = focused),
+        border_style = tstyle(focused ? :border_focus : :border),
+        box = BOX_ROUNDED
+    )
+    inner = render(block, rect, buf)
+    ((inner.height < 1) || (inner.width < 1)) && return nothing
+
+    header_h = inner.height >= 2 ? 1 : 0
+    rows_y = inner.y + header_h
+    rows_h = inner.height - header_h
+
+    m.visible_h = max(rows_h, 1)
+    clamp_scroll!(m)
+
+    need_sb = length(m.rows) > rows_h
+    content_right = right(inner) - (need_sb ? 1 : 0)
+    count_w = max(
+        7,
+        length(count_cell(m.nsamples, m.unit)),
+        length(count_label(m.unit))
+    )
+
+    (header_h == 1) &&
+        render_tree_header!(buf, inner.x, inner.y, content_right, count_w, m.unit)
+
+    for (i, y) in zip((m.scroll + 1):length(m.rows), rows_y:bottom(inner))
+        node = m.rows[i]
+        render_row!(
+            buf,
+            inner,
+            y,
+            node,
+            i == m.cursor,
+            is_parent_row(m, node),
+            content_right,
+            count_w,
+            m.unit
+        )
+    end
+
+    if need_sb
+        sb = Scrollbar(
+            length(m.rows),
+            rows_h,
+            m.scroll;
+            style = tstyle(:border),
+            thumb_style = tstyle(:accent)
+        )
+        render(sb, Rect(right(inner), rows_y, 1, rows_h), buf)
+    end
+
+    return nothing
+end
+
+"""
+    render_tree_header!(
+        buf::Buffer,
+        x::Int,
+        y::Int,
+        content_right::Int,
+        count_w::Int,
+        unit::Symbol
+    ) -> Nothing
+
+Render the frame list header line into `buf` at line `y`, mutating `buf`. It labels the
+columns of the rows below: the frame name and location on the left and, on the right,
+the mini cost bar, the cost in `unit` (samples, inference time, or invalidated
+instances), and the percentage of the total cost. The labels are aligned with the columns of a row spanning from `x` to
+`content_right`, whose cost cell is `count_w` characters wide.
+"""
+function render_tree_header!(
+    buf::Buffer,
+    x::Int,
+    y::Int,
+    content_right::Int,
+    count_w::Int,
+    unit::Symbol
+)
+    row_w = content_right - x + 1
+    row_w < 1 && return nothing
+
+    pct_w, bar_w, count_w, right_w = tree_columns(row_w, count_w)
+    style = tstyle(:text_dim, bold = true)
+    right_x = content_right - right_w + 1
+    mx = right_x - 2
+
+    set_string!(buf, x + 2, y, "Frame", style; max_x = mx)
+
+    (bar_w > 0) && set_string!(buf, right_x, y, lpad("Cost", bar_w), style)
+
+    (count_w > 0) && set_string!(
+        buf,
+        content_right - pct_w - 1 - count_w,
+        y,
+        lpad(count_label(unit), count_w),
+        style
+    )
+
+    set_string!(buf, content_right - pct_w + 1, y, lpad("Total", pct_w), style)
+    return nothing
+end
+
+"""
+    render_row!(
+        buf::Buffer,
+        inner::Rect,
+        y::Int,
+        node::PVNode,
+        selected::Bool,
+        is_parent::Bool,
+        content_right::Int,
+        count_w::Int,
+        unit::Symbol
+    ) -> Nothing
+
+Render one frame list row for `node` at screen line `y` into `buf`, mutating `buf`. The
+row spans from `inner.x` to `content_right` and shows, from right to left, the percentage
+of the total cost, the cost in `unit` right-aligned to `count_w` characters, and a mini
+cost bar. `selected` applies the cursor highlight, and `is_parent` renders the row as the
+pinned parent entry of the list.
+"""
+function render_row!(
+    buf::Buffer,
+    inner::Rect,
+    y::Int,
+    node::PVNode,
+    selected::Bool,
+    is_parent::Bool,
+    content_right::Int,
+    count_w::Int,
+    unit::Symbol
+)
+    row_w = content_right - inner.x + 1
+    row_w < 1 && return nothing
+
+    # == Cursor Highlight ==================================================================
+
+    if selected
+        set_string!(buf, inner.x, y, " "^row_w, with_selection(tstyle(:text), true))
+    end
+
+    # == Right-Aligned Columns =============================================================
+
+    pct_w, bar_w, count_w, right_w = tree_columns(row_w, count_w)
+    right_x = content_right - right_w + 1
+
+    if bar_w > 0
+        set_string!(
+            buf,
+            right_x,
+            y,
+            bar_string(node.pct_total, bar_w),
+            with_selection(bar_style(node.pct_total), selected)
+        )
+    end
+
+    if count_w > 0
+        set_string!(
+            buf,
+            content_right - pct_w - 1 - count_w,
+            y,
+            lpad(count_cell(node.count, unit), count_w),
+            with_selection(tstyle(:accent, bold = selected), selected)
+        )
+    end
+
+    set_string!(
+        buf,
+        content_right - pct_w + 1,
+        y,
+        lpad(format_pct(node.pct_total), pct_w),
+        with_selection(tstyle(:text_dim), selected)
+    )
+
+    # == Left Part: Glyph, Name, Tags, and Location ========================================
+
+    mx = right_x - 2
+    x = inner.x
+
+    glyph = is_parent ? "⬑ " : (isempty(node.children) ? "· " : "▸ ")
+    x = set_string!(buf, x, y, glyph, with_selection(tstyle(:text_dim), selected); max_x = mx)
+
+    name_style = is_parent ? tstyle(:secondary, bold = true) : row_name_style(node)
+
+    if selected
+        name_style = with_selection(
+            Style(;
+                fg = name_style.fg,
+                bold = true,
+                dim = name_style.dim,
+                italic = name_style.italic
+            ),
+            true
+        )
+    end
+
+    x = set_string!(buf, x, y, node_name(node), name_style; max_x = mx)
+
+    if is_dispatch(node)
+        x = set_string!(
+            buf,
+            x,
+            y,
+            " [dyn]",
+            with_selection(Style(; fg = RED.c400, bold = true), selected);
+            max_x = mx
+        )
+    end
+
+    if is_gc(node)
+        x = set_string!(
+            buf,
+            x,
+            y,
+            " [GC]",
+            with_selection(Style(; fg = ORANGE.c400, bold = true), selected);
+            max_x = mx
+        )
+    end
+
+    if is_inference(node)
+        x = set_string!(
+            buf,
+            x,
+            y,
+            " [inf]",
+            with_selection(Style(; fg = CYAN.c400, bold = true), selected);
+            max_x = mx
+        )
+    end
+
+    loc = node_location(node)
+
+    if !isempty(loc)
+        set_string!(
+            buf,
+            x,
+            y,
+            "  " * loc,
+            with_selection(tstyle(:text_dim, italic = true), selected);
+            max_x = mx
+        )
+    end
+
+    return nothing
+end
+
+"""
+    breadcrumb(node::Union{PVNode, Nothing}) -> String
+
+Return the ancestry path of `node` joined by `" ▸ "`, left-truncated with `…` when longer
+than 60 characters.
+"""
+function breadcrumb(node::Union{PVNode, Nothing})
+    node === nothing && return ""
+    names = String[]
+    n = node
+
+    while n !== nothing
+        pushfirst!(names, node_name(n))
+        n = n.parent
+    end
+
+    path = join(names, " ▸ ")
+    length(path) <= 60 && return path
+    return "…" * path[prevind(path, end, 59):end]
+end
+
+"""
+    render_status!(m::ProfileViewer, buf::Buffer, rect::Rect) -> Nothing
+
+Render the bottom status line with the most important key bindings for the active view
+and the breadcrumb of the current node into `buf` inside `rect`, mutating `buf`.
+"""
+function render_status!(m::ProfileViewer, buf::Buffer, rect::Rect)
+    key = tstyle(:accent, bold = true)
+    txt = tstyle(:text_dim)
+
+    hints = if m.help
+        ["esc/q" => "close"]
+    elseif m.mode == :tree
+        hints = ["↑↓" => "move", "⏎/→" => "enter", "⌫/←" => "back", "1/2" => "pane",
+            "+/-" => "zoom", "i" => "inspect", "?" => "help", "q" => "quit"]
+        ((m.unit === :bytes) || (m.unit === :allocs)) &&
+            insert!(hints, 6, "u" => m.unit === :bytes ? "by allocs" : "by memory")
+        hints
+    else
+        ["↑↓" => "move", "⏎/→" => "descend", "⌫/←" => "ascend", "1/2" => "pane",
+         "+/-" => "zoom", "t" => "src/IR", "q" => "close"]
+    end
+
+    left = Span[Span(" ", txt)]
+
+    for (k, desc) in hints
+        push!(left, Span(k, key))
+        push!(left, Span(" " * desc * "  ", txt))
+    end
+
+    right_spans = if !isempty(m.notice)
+        Span[Span(m.notice * " ", tstyle(:warning, bold = true))]
+    else
+        crumb_str = m.mode == :inspect ? inspect_breadcrumb(m.inspect) :
+            breadcrumb(m.current)
+
+        Span[Span(crumb_str * " ", txt)]
+    end
+
+    render(StatusBar(; left = left, right = right_spans, style = txt), rect, buf)
+    return nothing
+end
+
+"""
+    render_help!(buf::Buffer, area::Rect) -> Nothing
+
+Render the centered help dialog listing all key bindings on top of the current frame,
+dimming the background, mutating `buf`. The sections are laid out in two balanced columns
+when the terminal is wide enough, and in a single column otherwise. The dialog is closed
+with the Esc key.
+"""
+function render_help!(buf::Buffer, area::Rect)
+    set_style!(buf, area, tstyle(:text_dim, dim = true))
+
+    gap = 4
+
+    # Rows of one section: a header, its entries, and a trailing blank row.
+    sec_rows(section) = 2 + count(e -> e[1] == section, HELP_ENTRIES)
+    total_rows = sum(sec_rows(s) for (s, _) in HELP_SECTIONS)
+
+    # Key and description widths of the sections listed in one column.
+    function col_widths(col)
+        sections = Set(s for (s, _) in col)
+        entries = [e for e in HELP_ENTRIES if e[1] in sections]
+        kw = maximum(textwidth(e[2]) for e in entries)
+        return (kw, kw + 3 + maximum(textwidth(e[3]) for e in entries))
+    end
+
+    # Split the sections into two row-balanced columns, falling back to a single column
+    # when they do not fit side by side.
+    cols2 = [Pair{Symbol, String}[], Pair{Symbol, String}[]]
+    acc = 0
+
+    for (s, t) in HELP_SECTIONS
+        push!(cols2[acc >= total_rows ÷ 2 ? 2 : 1], s => t)
+        acc += sec_rows(s)
+    end
+
+    widths2 = any(isempty, cols2) ? nothing : col_widths.(cols2)
+
+    columns, widths = if (widths2 !== nothing) &&
+        (area.width >= sum(w[2] for w in widths2) + gap + 6)
+        cols2, widths2
+    else
+        col = collect(Pair{Symbol, String}, HELP_SECTIONS)
+        [col], [col_widths(col)]
+    end
+
+    col_rows(col) = isempty(col) ? 0 : sum(sec_rows(s) for (s, _) in col) - 1
+    ncol = length(columns)
+
+    # Interior: the tallest column plus the footer row.
+    n_rows = maximum(col_rows, columns) + 1
+    w = min(sum(w[2] for w in widths) + (ncol - 1) * gap + 6, area.width)
+    h = min(n_rows + 2, area.height)
+
+    rect = center(area, w, h)
+    block = Block(;
+        title = " Help ",
+        title_style = tstyle(:title, bold = true),
+        border_style = tstyle(:border_focus),
+        box = BOX_HEAVY
+    )
+    inner = render(block, rect, buf)
+    ((inner.height < 1) || (inner.width < 1)) && return nothing
+
+    for row in inner.y:bottom(inner)
+        set_string!(buf, inner.x, row, " "^inner.width, RESET)
+    end
+
+    content_bottom = bottom(inner) - 1
+
+    x0 = inner.x + 2
+
+    for (c, col) in enumerate(columns)
+        key_w = widths[c][1]
+        y = inner.y
+
+        for (section, title) in col
+            y > content_bottom && break
+            set_string!(
+                buf,
+                x0,
+                y,
+                title,
+                tstyle(:secondary, bold = true);
+                max_x = right(inner)
+            )
+            y += 1
+
+            for (s, k, desc) in HELP_ENTRIES
+                s == section || continue
+                y > content_bottom && break
+                x = set_string!(
+                    buf,
+                    x0,
+                    y,
+                    rpad(k, key_w),
+                    tstyle(:accent, bold = true);
+                    max_x = right(inner)
+                )
+                set_string!(buf, x + 3, y, desc, tstyle(:text); max_x = right(inner))
+                y += 1
+            end
+
+            y += 1
+        end
+
+        x0 += widths[c][2] + gap
+    end
+
+    msg = "esc to close"
+    pos = center(inner, textwidth(msg), 1)
+    set_string!(buf, pos.x, bottom(inner), msg, tstyle(:text_dim, italic = true))
+
+    return nothing
+end

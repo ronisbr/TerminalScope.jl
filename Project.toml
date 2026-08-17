@@ -1,0 +1,59 @@
+name = "TerminalScope"
+uuid = "bc14a303-2e4e-4aff-abc0-e6583d5a391b"
+version = "0.1.0"
+authors = ["Ronan Arraes Jardim Chagas <ronisbr@gmail.com>"]
+
+[deps]
+Cthulhu = "f68482b8-f384-11e8-15f7-abe071a5a75f"
+FlameGraphs = "08572546-2f56-4bcf-ba4e-bab62c3a3f89"
+InteractiveUtils = "b77e0a4c-d291-57a0-90e8-8db25a27a240"
+JuliaSyntaxHighlighting = "ac6e5ff7-fb65-4e79-a425-ec3bc9c03011"
+Logging = "56ddb016-857b-54e1-b83d-db4d58db5568"
+PrecompileTools = "aea7be01-6a6a-4083-8856-8a6e6704d82a"
+Profile = "9abbd945-dff8-562f-b5e8-e1ebf5ef1b79"
+SnoopCompile = "aa65fe97-06da-5843-b5b1-d5d13cad87d2"
+SnoopCompileCore = "e2b509da-e806-4183-be48-004708413034"
+StyledStrings = "f489334b-da3d-4c2e-b8f0-e476e12c162b"
+Tachikoma = "468859d6-42d8-48b7-8ad9-1d312e0e3b0a"
+TypedSyntax = "d265eb64-f81a-44ad-a842-4247ee1503de"
+
+[extensions]
+TerminalScopeCthulhuExt = "Cthulhu"
+TerminalScopeSnoopCompileExt = "SnoopCompile"
+
+[compat]
+Cthulhu = "3.0.2"
+FlameGraphs = "1.2.0"
+InteractiveUtils = "1.11.0"
+JuliaSyntaxHighlighting = "1.12.0"
+Logging = "1.11.0"
+PrecompileTools = "1.3.4"
+Profile = "1.10"
+SnoopCompile = "3.2.7"
+SnoopCompileCore = "3.1"
+StyledStrings = "1.11.0"
+Tachikoma = "2.5.0"
+TypedSyntax = "1.5.4"
+julia = "1.12"
+
+[extras]
+Cthulhu = "f68482b8-f384-11e8-15f7-abe071a5a75f"
+FlameGraphs = "08572546-2f56-4bcf-ba4e-bab62c3a3f89"
+LeftChildRightSiblingTrees = "1d6d02ad-be62-4b6b-8a6d-2f90e265016e"
+Profile = "9abbd945-dff8-562f-b5e8-e1ebf5ef1b79"
+SnoopCompile = "aa65fe97-06da-5843-b5b1-d5d13cad87d2"
+SnoopCompileCore = "e2b509da-e806-4183-be48-004708413034"
+Tachikoma = "468859d6-42d8-48b7-8ad9-1d312e0e3b0a"
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = [
+    "Cthulhu",
+    "FlameGraphs",
+    "LeftChildRightSiblingTrees",
+    "Profile",
+    "SnoopCompile",
+    "SnoopCompileCore",
+    "Tachikoma",
+    "Test"
+]

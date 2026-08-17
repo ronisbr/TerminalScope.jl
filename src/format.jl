@@ -1,0 +1,184 @@
+## Description #############################################################################
+#
+# Pure formatting and style-selection helpers used by the renderer.
+#
+############################################################################################
+
+"""
+    node_name(node::PVNode) -> String
+
+Return the display name of `node`: the root frame name (or `"all samples"` for an
+unnamed root), `"unknown"` for frames without a function name, and the function name
+otherwise.
+"""
+function node_name(node::PVNode)
+    name = string(node.sf.func)
+    is_tree_root(node) && return isempty(name) ? "all samples" : name
+    return isempty(name) ? "unknown" : name
+end
+
+"""
+    node_location(node::PVNode) -> String
+
+Return the display location of `node` as `"file.jl:line"` using only the base name of the
+file, or an empty string when the node has no location information.
+"""
+function node_location(node::PVNode)
+    is_tree_root(node) && return ""
+    file = string(node.sf.file)
+    isempty(file) && return ""
+    return string(basename(file), ":", node.sf.line)
+end
+
+"""
+    format_count(n::Int) -> String
+
+Return `n` formatted with `,` as the thousands separator.
+"""
+function format_count(n::Int)
+    str = string(abs(n))
+    groups = String[]
+
+    for i in length(str):-3:1
+        push!(groups, str[max(1, i - 2):i])
+    end
+
+    return string(n < 0 ? "-" : "", join(reverse(groups), ","))
+end
+
+"""
+    format_pct(pct::Float64) -> String
+
+Return the percentage `pct` [%] formatted with one decimal place, using `"<0.1%"` for
+positive values below `0.05` and `"0.0%"` for zero.
+"""
+function format_pct(pct::Float64)
+    (pct > 0) && (pct < 0.05) && return "<0.1%"
+    return string(round(pct; digits = 1), "%")
+end
+
+"""
+    format_seconds(t::Float64) -> String
+
+Return the duration `t` [s] formatted with automatic scaling to ms, s, or min.
+"""
+function format_seconds(t::Float64)
+    t < 1 && return string(round(t * 1000; digits = 1), " ms")
+    t < 60 && return string(round(t; digits = 2), " s")
+    m = floor(Int, t / 60)
+    return string(m, " min ", round(t - 60m; digits = 1), " s")
+end
+
+"""
+    format_bytes(n::Int) -> String
+
+Return `n` [bytes] formatted with automatic scaling to B, KiB, MiB, or GiB.
+"""
+function format_bytes(n::Int)
+    n < 1024 && return string(n, " B")
+    n < 1024^2 && return string(round(n / 1024; digits = 1), " KiB")
+    n < 1024^3 && return string(round(n / 1024^2; digits = 1), " MiB")
+    return string(round(n / 1024^3; digits = 2), " GiB")
+end
+
+"""
+    count_cell(count::Int, unit::Symbol) -> String
+
+Return the cost column text for `count`: a formatted duration when `unit` is `:time`
+(`count` in [ns]), a formatted size when it is `:bytes`, and a formatted count otherwise
+(`:samples`, `:invalidations`, or `:allocs`).
+"""
+function count_cell(count::Int, unit::Symbol)
+    (unit === :time) && return format_seconds(count / 1e9)
+    (unit === :bytes) && return format_bytes(count)
+    return format_count(count)
+end
+
+"""
+    count_label(unit::Symbol) -> String
+
+Return the header label of the cost column for `unit`: `"Samples"`, `"Time"`,
+`"Instances"`, `"Memory"`, or `"Allocs"`.
+"""
+function count_label(unit::Symbol)
+    (unit === :time) && return "Time"
+    (unit === :invalidations) && return "Instances"
+    (unit === :bytes) && return "Memory"
+    (unit === :allocs) && return "Allocs"
+    return "Samples"
+end
+
+"""
+    bar_string(pct::Float64, width::Int) -> String
+
+Return a horizontal bar of `width` cells filled proportionally to `pct` [%], using
+eighth-block glyphs for the fractional cell.
+"""
+function bar_string(pct::Float64, width::Int)
+    width <= 0 && return ""
+    frac = clamp(pct / 100, 0.0, 1.0) * width
+    full = floor(Int, frac)
+    rem8 = round(Int, 8 * (frac - full))
+
+    bar = repeat('█', min(full, width))
+
+    if (full < width) && (rem8 > 0)
+        bar *= BARS_H[rem8]
+    end
+
+    return rpad(bar, width)
+end
+
+"""
+    bar_style(pct::Float64) -> Style
+
+Return the style of the mini cost bar for a node taking `pct` [%] of the total samples:
+green below 33 %, yellow below 66 %, and red above.
+"""
+function bar_style(pct::Float64)
+    pct < 33 && return tstyle(:success)
+    pct < 66 && return tstyle(:warning)
+    return tstyle(:error)
+end
+
+"""
+    row_name_style(node::PVNode) -> Style
+
+Return the style of the function name of `node` in the tree view: red for runtime
+dispatch, orange for garbage collection, dimmed for C frames, bright and bold for hot
+frames (≥ 50 % of the total samples), and the default text style otherwise.
+"""
+function row_name_style(node::PVNode)
+    is_dispatch(node) && return Style(; fg = RED.c400)
+    is_gc(node) && return Style(; fg = ORANGE.c400)
+    node.sf.from_c && return tstyle(:text_dim)
+    node.pct_total >= 50 && return tstyle(:text_bright, bold = true)
+    return tstyle(:text)
+end
+
+"""
+    selection_bg() -> Color256
+
+Return the background color used to highlight the row under the cursor, adapted to the
+current light or dark mode.
+"""
+selection_bg() = light_mode() ? Color256(252) : Color256(237)
+
+"""
+    with_selection(style::Style, selected::Bool) -> Style
+
+Return `style` unchanged when `selected` is `false`, or a copy with the selection
+background applied when `selected` is `true`.
+"""
+function with_selection(style::Style, selected::Bool)
+    selected || return style
+
+    return Style(;
+        fg = style.fg,
+        bg = selection_bg(),
+        bold = style.bold,
+        dim = style.dim,
+        italic = style.italic,
+        underline = style.underline
+    )
+end
