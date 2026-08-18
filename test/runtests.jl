@@ -244,6 +244,48 @@ end
     @test should_quit(m)
 end
 
+@testset "Key Handling: Vim Aliases" begin
+    m = make_model()
+    m.visible_h = 10
+
+    # j / k / g / G move the cursor like ↓ / ↑ / Home / End.
+    update!(m, KeyEvent(:char, 'k'))
+    @test m.cursor == 1
+    update!(m, KeyEvent(:char, 'j'))
+    @test m.cursor == 2
+    update!(m, KeyEvent(:char, 'G'))
+    @test m.cursor == length(m.rows)
+    update!(m, KeyEvent(:char, 'g'))
+    @test m.cursor == 1
+
+    # l descends and h ascends like → and ←.
+    update!(m, KeyEvent(:char, 'j'))
+    update!(m, KeyEvent(:char, 'l'))
+    @test TS.node_name(m.current) == "f"
+    update!(m, KeyEvent(:char, 'h'))
+    @test m.current === m.root
+    @test TS.node_name(TS.selected_row(m)) == "f"
+
+    # j / k scroll the code when the source panel is focused.
+    m.tree_focus = :code
+    d = m.detail
+    d.node = m.rows[2]
+    d.src_lines = ["line $i" for i in 1:100]
+    d.src_chars = collect.(d.src_lines)
+    d.src_segments = [Tuple{UnitRange{Int}, TS.Style}[] for _ in 1:100]
+    d.src_h = 10
+    d.src_scroll = 0
+
+    update!(m, KeyEvent(:char, 'j'))
+    @test d.src_scroll == 1
+    update!(m, KeyEvent(:char, 'k'))
+    @test d.src_scroll == 0
+    update!(m, KeyEvent(:char, 'G'))
+    @test d.src_scroll == 90
+    update!(m, KeyEvent(:char, 'g'))
+    @test d.src_scroll == 0
+end
+
 @testset "Machinery Skip and Auto-Descend" begin
     # A machinery-like profile: a pass-through chain root → a → b carrying ~all samples,
     # branching at c.

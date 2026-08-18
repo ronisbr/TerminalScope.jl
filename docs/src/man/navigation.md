@@ -23,6 +23,7 @@ the movement keys act on the focused one.
 | Keys              | Action                                                        |
 |:------------------|:--------------------------------------------------------------|
 | `↑` / `↓`         | Move the cursor (list) or scroll the code (source panel)      |
+| `j` `k` `h` `l` `g` `G` | Vim-style aliases of `↓` `↑` `←` `→` `Home` `End`       |
 | `PgUp` / `PgDn`   | Move or scroll one page                                       |
 | `Home` / `End`    | Go to the first / last row, or the top / bottom of the code   |
 | `Enter` / `→`     | Enter the node; on a leaf, focus the source panel             |

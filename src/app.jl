@@ -500,21 +500,21 @@ function _update_tree!(m::ProfileViewer, evt::KeyEvent)
     elseif on_list
         page = max(1, m.visible_h - 1)
 
-        if evt.key == :up
+        if (evt.key == :up) || is_char('k')
             move_cursor!(m, -1)
-        elseif evt.key == :down
+        elseif (evt.key == :down) || is_char('j')
             move_cursor!(m, +1)
         elseif evt.key == :pageup
             move_cursor!(m, -page)
         elseif evt.key == :pagedown
             move_cursor!(m, +page)
-        elseif evt.key == :home
+        elseif (evt.key == :home) || is_char('g')
             move_cursor!(m, -length(m.rows))
-        elseif evt.key == :end_key
+        elseif (evt.key == :end_key) || is_char('G')
             move_cursor!(m, +length(m.rows))
-        elseif (evt.key == :enter) || (evt.key == :right)
+        elseif (evt.key == :enter) || (evt.key == :right) || is_char('l')
             descend!(m)
-        elseif (evt.key == :backspace) || (evt.key == :left)
+        elseif (evt.key == :backspace) || (evt.key == :left) || is_char('h')
             ascend!(m)
         end
     else
@@ -522,13 +522,13 @@ function _update_tree!(m::ProfileViewer, evt::KeyEvent)
         page = max(1, h - 1)
         half = max(1, h ÷ 2)
 
-        if evt.key == :up
+        if (evt.key == :up) || is_char('k')
             detail_scroll!(d, -1, 0)
-        elseif evt.key == :down
+        elseif (evt.key == :down) || is_char('j')
             detail_scroll!(d, +1, 0)
-        elseif evt.key == :left
+        elseif (evt.key == :left) || is_char('h')
             detail_scroll!(d, 0, -4)
-        elseif evt.key == :right
+        elseif (evt.key == :right) || is_char('l')
             detail_scroll!(d, 0, +4)
         elseif evt.key == :pageup
             detail_scroll!(d, -page, 0)
@@ -538,9 +538,9 @@ function _update_tree!(m::ProfileViewer, evt::KeyEvent)
             detail_scroll!(d, -half, 0)
         elseif is_ctrl('d')
             detail_scroll!(d, +half, 0)
-        elseif evt.key == :home
+        elseif (evt.key == :home) || is_char('g')
             detail_vset!(d, 0)
-        elseif evt.key == :end_key
+        elseif (evt.key == :end_key) || is_char('G')
             detail_vset!(d, typemax(Int) ÷ 2)
         elseif is_char('0')
             detail_hset!(d, 0)
@@ -609,16 +609,16 @@ function _update_inspect!(m::ProfileViewer, evt::KeyEvent)
     elseif is_char('-')
         zoom!(m, st.focus, on_calls ? :code : :calls, -1)
 
-    elseif evt.key == :up
+    elseif (evt.key == :up) || is_char('k')
         move!(-1)
 
-    elseif evt.key == :down
+    elseif (evt.key == :down) || is_char('j')
         move!(+1)
 
-    elseif evt.key == :left
+    elseif (evt.key == :left) || is_char('h')
         on_calls ? inspect_ascend!(m) : inspect_scroll_code!(m, 0, -4)
 
-    elseif evt.key == :right
+    elseif (evt.key == :right) || is_char('l')
         on_calls ? inspect_descend!(m) : inspect_scroll_code!(m, 0, +4)
 
     elseif evt.key == :enter
@@ -633,10 +633,10 @@ function _update_inspect!(m::ProfileViewer, evt::KeyEvent)
     elseif evt.key == :pagedown
         move!(+page)
 
-    elseif evt.key == :home
+    elseif (evt.key == :home) || is_char('g')
         move!(-typemax(Int) ÷ 2)
 
-    elseif evt.key == :end_key
+    elseif (evt.key == :end_key) || is_char('G')
         move!(+typemax(Int) ÷ 2)
 
     elseif is_char('t')

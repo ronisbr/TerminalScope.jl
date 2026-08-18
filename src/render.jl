@@ -27,6 +27,7 @@ const HELP_ENTRIES = (
     (:inspect, "Tab, 1 / 2",  "Focus the code / call-site pane"),
     (:inspect, "t",           "Toggle source / typed IR"),
     (:inspect, "q / Esc",     "Close the inspector"),
+    (:general, "j k h l g G", "Vim aliases of ↓ ↑ ← → Home End"),
     (:general, "+ / -",       "Grow / shrink the focused panel"),
     (:general, "?",           "Toggle this help dialog"),
 )
