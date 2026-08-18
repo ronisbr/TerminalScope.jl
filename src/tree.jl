@@ -42,32 +42,44 @@ mutable struct PVNode
 end
 
 """
-    PVNode(
-        sf::StackFrame,
-        count::Int,
-        self::Int,
-        pct_total::Float64,
-        pct_parent::Float64,
-        status::UInt8,
-        depth::Int,
-        parent::Union{PVNode, Nothing},
-        children::Vector{PVNode},
-        inference::Bool
-    ) -> PVNode
+    PVNode(sf::StackFrame; kwargs...) -> PVNode
 
-Create a `PVNode` with no secondary cost (`allocs = 0`).
+Create a `PVNode` for the stack frame `sf`, defaulting every other field to an empty
+value: zero costs and percentages, no status flags, depth `0`, no parent, no children,
+and not an inference frame.
+
+# Keywords
+
+- `count::Int`: Inclusive cost of the node.
+    (**Default**: `0`)
+- `self::Int`: Cost of the node itself, excluding its children.
+    (**Default**: `0`)
+- `pct_total::Float64`: Inclusive cost as a percentage [%] of the total cost.
+    (**Default**: `0.0`)
+- `pct_parent::Float64`: Inclusive cost as a percentage [%] of the parent's cost.
+    (**Default**: `0.0`)
+- `status::UInt8`: FlameGraphs status bitfield.
+    (**Default**: `0x00`)
+- `depth::Int`: Depth of the node in the tree.
+    (**Default**: `0`)
+- `parent::Union{PVNode, Nothing}`: Parent node.
+    (**Default**: `nothing`)
+- `inference::Bool`: Whether the frame belongs to the Julia compiler.
+    (**Default**: `false`)
+- `allocs::Int`: Secondary cost of the node.
+    (**Default**: `0`)
 """
 function PVNode(
-    sf::StackFrame,
-    count::Int,
-    self::Int,
-    pct_total::Float64,
-    pct_parent::Float64,
-    status::UInt8,
-    depth::Int,
-    parent::Union{PVNode, Nothing},
-    children::Vector{PVNode},
-    inference::Bool
+    sf::StackFrame;
+    count::Int = 0,
+    self::Int = 0,
+    pct_total::Float64 = 0.0,
+    pct_parent::Float64 = 0.0,
+    status::UInt8 = 0x00,
+    depth::Int = 0,
+    parent::Union{PVNode, Nothing} = nothing,
+    inference::Bool = false,
+    allocs::Int = 0
 )
     return PVNode(
         sf,
@@ -78,9 +90,9 @@ function PVNode(
         status,
         depth,
         parent,
-        children,
+        PVNode[],
         inference,
-        0
+        allocs
     )
 end
 
@@ -118,16 +130,15 @@ function _build_node(g, parent::Union{PVNode, Nothing}, depth::Int, total::Int)
     end
 
     node = PVNode(
-        nd.sf,
-        count,
-        count,
-        pct_total,
-        pct_parent,
-        nd.status,
-        depth,
-        parent,
-        PVNode[],
-        is_inference_frame(nd.sf)
+        nd.sf;
+        count = count,
+        self = count,
+        pct_total = pct_total,
+        pct_parent = pct_parent,
+        status = nd.status,
+        depth = depth,
+        parent = parent,
+        inference = is_inference_frame(nd.sf)
     )
 
     for c in g
@@ -199,7 +210,7 @@ into a `PVNode` tree whose counts are inference plus LLVM compilation times [ns]
 """
 function build_inference_tree(tinf)
     root_sf = StackFrame(Symbol("inference"), Symbol(""), -1, nothing, false, false, 0)
-    root = PVNode(root_sf, 0, 0, 0.0, 0.0, 0x00, 0, nothing, PVNode[], false)
+    root = PVNode(root_sf)
 
     for c in tinf.children
         push!(root.children, _build_inference_node(c, root, 1))
@@ -222,7 +233,7 @@ Percentages are left unset; they are filled by [`_finalize_percentages!`](@ref).
 """
 function _build_inference_node(itn, parent::PVNode, depth::Int)
     mi = SnoopCompileCore.methodinstance(itn.ci)
-    node = PVNode(_mi_stackframe(mi), 0, 0, 0.0, 0.0, 0x00, depth, parent, PVNode[], false)
+    node = PVNode(_mi_stackframe(mi); depth = depth, parent = parent)
 
     for c in itn.children
         push!(node.children, _build_inference_node(c, node, depth + 1))
@@ -344,7 +355,7 @@ filled by [`_finalize_percentages!`](@ref).
 """
 function _build_instance_pvnode(@nospecialize(node), parent::PVNode, depth::Int)
     mi = node isa Core.MethodInstance ? node : node.mi
-    pv = PVNode(_mi_stackframe(mi), 1, 1, 0.0, 0.0, 0x00, depth, parent, PVNode[], false)
+    pv = PVNode(_mi_stackframe(mi); count = 1, self = 1, depth = depth, parent = parent)
 
     if !(node isa Core.MethodInstance)
         for c in node.children
@@ -369,12 +380,12 @@ under an intermediate node named after the invalidated call signature.
 """
 function build_invalidation_tree(trees)
     root_sf = StackFrame(Symbol("invalidations"), Symbol(""), -1, nothing, false, false, 0)
-    root = PVNode(root_sf, 0, 0, 0.0, 0.0, 0x00, 0, nothing, PVNode[], false)
+    root = PVNode(root_sf)
 
     for tree in trees
         name, file, line = _invalidation_trigger(tree)
         sf = StackFrame(Symbol(name), file, line, nothing, false, false, 0)
-        tnode = PVNode(sf, 0, 0, 0.0, 0.0, 0x00, 1, root, PVNode[], false)
+        tnode = PVNode(sf; depth = 1, parent = root)
 
         for r in tree.backedges
             push!(tnode.children, _build_instance_pvnode(r, tnode, 2))
@@ -390,7 +401,7 @@ function build_invalidation_tree(trees)
                 false,
                 0
             )
-            snode = PVNode(sig_sf, 0, 0, 0.0, 0.0, 0x00, 2, tnode, PVNode[], false)
+            snode = PVNode(sig_sf; depth = 2, parent = tnode)
             push!(snode.children, _build_instance_pvnode(r, snode, 3))
             snode.count = sum(c -> c.count, snode.children; init = 0)
             push!(tnode.children, snode)
@@ -497,18 +508,7 @@ function _alloc_child!(
     child = get(index, k, nothing)
     (child !== nothing) && return child
 
-    child = PVNode(
-        sf,
-        0,
-        0,
-        0.0,
-        0.0,
-        0x00,
-        parent.depth + 1,
-        parent,
-        PVNode[],
-        false
-    )
+    child = PVNode(sf; depth = parent.depth + 1, parent = parent)
     push!(parent.children, child)
     index[k] = child
     return child
@@ -533,7 +533,7 @@ while user files are still credited for allocations that bottom out inside Base.
 """
 function build_alloc_tree(results; line_costs = nothing)
     root_sf = StackFrame(Symbol("allocations"), Symbol(""), -1, nothing, false, false, 0)
-    root = PVNode(root_sf, 0, 0, 0.0, 0.0, 0x00, 0, nothing, PVNode[], false)
+    root = PVNode(root_sf)
     index = Dict{Tuple{UInt64, Any}, PVNode}()
 
     for a in results.allocs

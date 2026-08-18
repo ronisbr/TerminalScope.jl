@@ -283,18 +283,7 @@ Create a viewer model whose only view is the type-instability inspector opened o
 method instance `mi`, so that closing the inspector quits the application.
 """
 function inspector_viewer(mi::Core.MethodInstance)
-    root = PVNode(
-        Base.StackTraces.UNKNOWN,
-        0,
-        0,
-        0.0,
-        100.0,
-        0x00,
-        0,
-        nothing,
-        PVNode[],
-        false
-    )
+    root = PVNode(Base.StackTraces.UNKNOWN; pct_parent = 100.0)
 
     m = _viewer(root, :samples, 0.0, nothing, 0)
     m.inspect.standalone = true
