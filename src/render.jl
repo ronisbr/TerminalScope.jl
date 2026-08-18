@@ -522,7 +522,7 @@ function render_row!(
     loc = node_location(node)
 
     if !isempty(loc)
-        set_string!(
+        x = set_string!(
             buf,
             x,
             y,
@@ -530,6 +530,19 @@ function render_row!(
             with_selection(tstyle(:text_dim, italic = true), selected);
             max_x = mx
         )
+
+        pkg = node_package(node)
+
+        if pkg !== nothing
+            set_string!(
+                buf,
+                x,
+                y,
+                " [$pkg]",
+                with_selection(Style(; fg = GRAY.c500, italic = true), selected);
+                max_x = mx
+            )
+        end
     end
 
     return nothing

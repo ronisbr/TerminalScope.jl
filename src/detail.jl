@@ -83,6 +83,88 @@ function resolve_source(node::PVNode)
 end
 
 """
+    _PACKAGE_CACHE
+
+Cache of the [`file_package`](@ref) lookups, keyed by the frame file string.
+"""
+const _PACKAGE_CACHE = Dict{String, Union{String, Nothing}}()
+
+"""
+    _project_name(path::String) -> Union{String, Nothing}
+
+Return the `name` entry of the top-level section of the project file at `path`, or
+`nothing` when the file does not exist, cannot be read, or does not name a package.
+"""
+function _project_name(path::String)
+    isfile(path) || return nothing
+
+    try
+        for line in eachline(path)
+            m = match(r"^\s*name\s*=\s*\"([^\"]+)\"", line)
+            (m !== nothing) && return String(m.captures[1])
+
+            # The name entry belongs to the top-level section, before any [table].
+            startswith(lstrip(line), '[') && break
+        end
+    catch
+    end
+
+    return nothing
+end
+
+"""
+    file_package(file::AbstractString) -> Union{String, Nothing}
+
+Return the display name of the package that owns the source file `file`, e.g.
+`"SatelliteToolbox.jl"`, resolved from the closest ancestor project file that names a
+package. Return `"Base"` for files of the Julia base library, and `nothing` when the
+owner cannot be determined. The file system is walked once per distinct `file`; the
+result is cached.
+"""
+function file_package(file::AbstractString)
+    return get!(() -> _resolve_package(String(file)), _PACKAGE_CACHE, String(file))
+end
+
+"""
+    _resolve_package(file::String) -> Union{String, Nothing}
+
+Perform the uncached owner lookup of [`file_package`](@ref).
+"""
+function _resolve_package(file::String)
+    isempty(file) && return nothing
+
+    path = if isabspath(file) && isfile(file)
+        file
+    else
+        resolved = Base.find_source_file(file)
+        ((resolved !== nothing) && isfile(resolved)) ? resolved : nothing
+    end
+
+    path === nothing && return nothing
+    path = abspath(path)
+
+    # Files of the Julia base library live under the distribution share directory and
+    # have no project file.
+    startswith(path, abspath(Sys.BINDIR, Base.DATAROOTDIR, "julia", "base")) &&
+        return "Base"
+
+    # Walk up the directory tree to the closest project file that names a package. This
+    # covers installed packages, dev'ed packages, and the standard libraries.
+    dir = dirname(path)
+
+    while true
+        for proj in ("Project.toml", "JuliaProject.toml")
+            name = _project_name(joinpath(dir, proj))
+            (name !== nothing) && return name * ".jl"
+        end
+
+        parent = dirname(dir)
+        (parent == dir) && return nothing
+        dir = parent
+    end
+end
+
+"""
     load_source!(d::DetailState) -> Nothing
 
 Resolve, read, and highlight the source file of `d.node`, mutating `d` by filling
@@ -359,6 +441,10 @@ function info_strip(node::PVNode, delay::Float64, unit::Symbol)
     loc = node_location(node)
     !isempty(loc) && push!(top, Span("  " * loc, tstyle(:text_dim, italic = true)))
 
+    pkg = node_package(node)
+    (pkg !== nothing) &&
+        push!(top, Span(" [$pkg]", Style(; fg = GRAY.c500, italic = true)))
+
     # == Costs =============================================================================
 
     costs = Span[]
@@ -581,8 +667,17 @@ function render_source_panel!(m, buf::Buffer, rect::Rect; focused::Bool)
     node === nothing && return nothing
 
     title = d.src_path === nothing ? " [2] Source " : " [2] $(basename(d.src_path)) "
+    pkg = d.src_path === nothing ? nothing : file_package(d.src_path)
+    title_right = pkg === nothing ? "" : " $(pkg) "
+
+    # The right title is dropped when the panel is too narrow to hold both titles,
+    # since it would otherwise be drawn over the file name.
+    (textwidth(title) + textwidth(title_right) + 6 > rect.width) && (title_right = "")
+
     block = Block(;
         title = title,
+        title_right = title_right,
+        title_right_style = Style(; fg = GRAY.c500, italic = true),
         border_style = tstyle(focused ? :border_focus : :border),
         title_style = tstyle(:title, bold = focused),
         box = BOX_ROUNDED

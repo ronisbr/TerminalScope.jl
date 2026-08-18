@@ -153,6 +153,17 @@ end
     f = root.children[1]
     @test TS.node_name(f) == "f"
     @test endswith(TS.node_location(f), ":10")
+    @test TS.node_package(f) == "TerminalScope.jl"
+    @test TS.node_package(root) === nothing
+
+    # Package resolution of source files.
+    @test TS.file_package(@__FILE__) == "TerminalScope.jl"
+    @test TS.file_package(pathof(Profile)) == "Profile.jl"
+    @test TS.file_package("this_file_does_not_exist.jl") === nothing
+    @test TS.file_package("") === nothing
+
+    int_jl = Base.find_source_file("int.jl")
+    ((int_jl !== nothing) && isfile(int_jl)) && @test TS.file_package("int.jl") == "Base"
 end
 
 @testset "Key Handling: Drill-Down Navigation" begin
@@ -568,9 +579,11 @@ end
     tview(m, frame)
     @test find_text(tb, "[dyn]") !== nothing
 
-    # The source panel follows the selection: it shows the info strip and the source.
+    # The source panel follows the selection: it shows the info strip and the source,
+    # with the owner package tagged after the file location.
     @test find_text(tb, "[1] Frames") !== nothing
     @test find_text(tb, "[2] runtests.jl") !== nothing
+    @test find_text(tb, "[TerminalScope.jl]") !== nothing
     @test find_text(tb, "Samples") !== nothing
 
     # Zoom: each + grows the focused panel one step, maximizing it at the last step, and

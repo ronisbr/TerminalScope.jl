@@ -31,6 +31,20 @@ function node_location(node::PVNode)
 end
 
 """
+    node_package(node::PVNode) -> Union{String, Nothing}
+
+Return the display name of the package that owns the source file of `node` (see
+[`file_package`](@ref)), or `nothing` when the node has no location information or the
+owner cannot be determined.
+"""
+function node_package(node::PVNode)
+    is_tree_root(node) && return nothing
+    file = string(node.sf.file)
+    isempty(file) && return nothing
+    return file_package(file)
+end
+
+"""
     format_count(n::Int) -> String
 
 Return `n` formatted with `,` as the thousands separator.
