@@ -39,3 +39,9 @@ jobs:
       - uses: julia-actions/cache@v3
       - uses: julia-actions/julia-buildpkg@v1
       - uses: julia-actions/julia-runtest@v1
+        env:
+          # The batch precompilation of the test environment aborts Pkg.test when a
+          # package fails to precompile. Skipping it lets the packages load one by one
+          # in the test process, where the test suite catches an unavailable Cthulhu
+          # (common on nightlies) and skips the inspector-dependent testsets.
+          JULIA_PKG_PRECOMPILE_AUTO: '0'

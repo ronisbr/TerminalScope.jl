@@ -12,7 +12,6 @@ using Profile
 using Tachikoma
 using TerminalScope
 
-import Cthulhu
 import Preferences
 import SnoopCompile
 import SnoopCompileCore
@@ -22,6 +21,31 @@ using Base.StackTraces: StackFrame
 import Tachikoma: update!, should_quit
 
 const TS = TerminalScope
+
+"""
+    _try_import_cthulhu() -> Bool
+
+Import Cthulhu into the test module, returning whether it could be loaded.
+"""
+function _try_import_cthulhu()
+    try
+        @eval import Cthulhu
+        return true
+    catch err
+        @warn "Cthulhu could not be loaded. Skipping the inspector-dependent testsets." err
+        return false
+    end
+end
+
+"""
+    CTHULHU_AVAILABLE
+
+Whether Cthulhu could be loaded. The inspector-dependent testsets are skipped when it
+cannot, e.g. on Julia nightlies whose compiler internals Cthulhu does not support yet,
+so the rest of the suite still validates the package (which degrades the same way at
+runtime).
+"""
+const CTHULHU_AVAILABLE = _try_import_cthulhu()
 
 """
     tview(m, f) -> Nothing
@@ -130,8 +154,10 @@ end
     include("./rendering.jl")
 end
 
-@testset "Type Inspector" verbose = true begin
-    include("./type_inspector.jl")
+if CTHULHU_AVAILABLE
+    @testset "Type Inspector" verbose = true begin
+        include("./type_inspector.jl")
+    end
 end
 
 @testset "Invalidations" verbose = true begin
@@ -142,8 +168,10 @@ end
     include("./allocations.jl")
 end
 
-@testset "Lazy Backends" verbose = true begin
-    include("./lazy_backends.jl")
+if CTHULHU_AVAILABLE
+    @testset "Lazy Backends" verbose = true begin
+        include("./lazy_backends.jl")
+    end
 end
 
 @testset "Themes" verbose = true begin

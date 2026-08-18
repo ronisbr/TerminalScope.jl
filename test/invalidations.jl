@@ -100,19 +100,22 @@ _invalidation_outer(x::Int) = _invalidation_caller(x) * 2
         tview(m, frame)
         @test find_text(tb, "Instances") !== nothing
 
-        # The inspector opens on an invalidated method instance.
-        while true
-            n = TS.selected_row(m)
-            ((n !== nothing) && (n.sf.linfo isa Core.MethodInstance)) && break
-            isempty(n.children) && break
-            update!(m, KeyEvent(:enter))
-        end
+        # The inspector opens on an invalidated method instance. The block requires the
+        # Cthulhu backend, so it is skipped when Cthulhu cannot be loaded.
+        if CTHULHU_AVAILABLE
+            while true
+                n = TS.selected_row(m)
+                ((n !== nothing) && (n.sf.linfo isa Core.MethodInstance)) && break
+                isempty(n.children) && break
+                update!(m, KeyEvent(:enter))
+            end
 
-        if TS.selected_row(m).sf.linfo isa Core.MethodInstance
-            update!(m, KeyEvent(:char, 'i'))
-            @test m.mode == :inspect
-            update!(m, KeyEvent(:escape))
-            @test m.mode == :tree
+            if TS.selected_row(m).sf.linfo isa Core.MethodInstance
+                update!(m, KeyEvent(:char, 'i'))
+                @test m.mode == :inspect
+                update!(m, KeyEvent(:escape))
+                @test m.mode == :tree
+            end
         end
     end
 end
