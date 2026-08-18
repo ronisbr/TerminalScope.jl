@@ -686,6 +686,8 @@ function render_source_panel!(m, buf::Buffer, rect::Rect; focused::Bool)
     inner = render(block, rect, buf)
     ((inner.height < 1) || (inner.width < 1)) && return nothing
 
+    m.code_rect = inner
+
     # == Information Strip =================================================================
 
     strip_rows = info_strip(node, m.delay, m.unit)

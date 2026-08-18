@@ -29,6 +29,7 @@ const HELP_ENTRIES = (
     (:inspect, "q / Esc",     "Close the inspector"),
     (:general, "j k h l g G", "Vim aliases of ↓ ↑ ← → Home End"),
     (:general, "+ / -",       "Grow / shrink the focused panel"),
+    (:general, "Mouse",       "Wheel scrolls; click selects / enters"),
     (:general, "?",           "Toggle this help dialog"),
 )
 
@@ -259,6 +260,9 @@ panel, regardless of the focus; at the last step only the focused panel renders,
 the whole `rect`.
 """
 function render_main!(m::ProfileViewer, buf::Buffer, rect::Rect)
+    m.list_rows_rect = Rect()
+    m.code_rect = Rect()
+
     if m.zoom >= ZOOM_MAX
         if m.tree_focus === :list
             render_tree!(m, buf, rect; focused = true)
@@ -301,6 +305,7 @@ function render_tree!(m::ProfileViewer, buf::Buffer, rect::Rect; focused::Bool =
     rows_h = inner.height - header_h
 
     m.visible_h = max(rows_h, 1)
+    m.list_rows_rect = Rect(inner.x, rows_y, inner.width, rows_h)
     clamp_scroll!(m)
 
     need_sb = length(m.rows) > rows_h

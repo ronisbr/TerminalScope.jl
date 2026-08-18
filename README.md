@@ -48,8 +48,9 @@ using TerminalScope
 
 Each mode opens a full-screen viewer that takes over the terminal until the user quits
 with the `q` key. The main view shows the frame list on the left and the source code of
-the selected row — updated live while navigating — on the right. Press `?` inside the
-viewer for the complete set of key bindings.
+the selected row — updated live while navigating — on the right. The viewers support
+the mouse (the wheel scrolls the hovered panel and a click selects a row) and vim-style
+navigation keys. Press `?` inside the viewer for the complete set of key bindings.
 
 ## Theme Customization
 

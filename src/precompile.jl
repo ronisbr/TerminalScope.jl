@@ -79,6 +79,13 @@ PrecompileTools.@setup_workload begin
         update!(m, KeyEvent(:escape))
         update!(m, KeyEvent(:char, '1'))
 
+        # Mouse path: wheel scrolling and click selection over the rendered panels.
+        update!(m, MouseEvent(5, 6, mouse_scroll_down, mouse_press, false, false, false))
+        update!(m, MouseEvent(60, 10, mouse_scroll_down, mouse_press, false, false, false))
+        update!(m, MouseEvent(5, 6, mouse_left, mouse_press, false, false, false))
+        view(m, frame)
+        update!(m, KeyEvent(:char, '1'))
+
         # Help dialog.
         update!(m, KeyEvent(:char, '?'))
         view(m, frame)

@@ -96,6 +96,10 @@ Store the state of the type-instability inspector.
 - `calls_h::Int`: Height [rows] of the call-site list, written during rendering.
 - `code_h::Int`: Height [rows] of the code pane, written during rendering.
 - `code_w::Int`: Width [columns] of the code pane text area, written during rendering.
+- `calls_rect::Rect`: Screen area of the call-site list, written during rendering and
+    used by the mouse handling. It is empty while the pane is not shown.
+- `code_rect::Rect`: Screen area of the code pane, written during rendering and used by
+    the mouse handling. It is empty while the pane is not shown.
 """
 mutable struct InspectState
     provider::Any
@@ -108,6 +112,8 @@ mutable struct InspectState
     calls_h::Int
     code_h::Int
     code_w::Int
+    calls_rect::Rect
+    code_rect::Rect
 end
 
 """
@@ -116,8 +122,22 @@ end
 Create an empty `InspectState` with no provider, an empty frame stack, and the call-site
 list focused.
 """
-InspectState() =
-    InspectState(nothing, false, nothing, InspectFrame[], :calls, false, :tree, 1, 1, 1)
+function InspectState()
+    return InspectState(
+        nothing,
+        false,
+        nothing,
+        InspectFrame[],
+        :calls,
+        false,
+        :tree,
+        1,
+        1,
+        1,
+        Rect(),
+        Rect()
+    )
+end
 
 ############################################################################################
 #                                         Analysis                                         #
@@ -688,6 +708,8 @@ return types colored by stability.
 """
 function render_inspect!(m, buf::Buffer, rect::Rect)
     st = m.inspect
+    st.calls_rect = Rect()
+    st.code_rect = Rect()
     fr = inspect_top(st)
     fr === nothing && return nothing
 
@@ -725,6 +747,7 @@ function render_inspect!(m, buf::Buffer, rect::Rect)
         inner = render(block, rows[2], buf)
 
         st.calls_h = max(inner.height, 1)
+        st.calls_rect = inner
         n = length(fr.entries) + 1
         fr.scroll = _clamped_scroll(fr.scroll, fr.cursor, st.calls_h, n)
 
@@ -805,6 +828,7 @@ function render_inspect!(m, buf::Buffer, rect::Rect)
         )
         inner = render(block, rows[1], buf)
         st.code_h = max(inner.height, 1)
+        st.code_rect = inner
 
         lines = inspect_code_lines(fr)
 

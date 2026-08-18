@@ -40,6 +40,11 @@ the movement keys act on the focused one.
 The status bar always shows the most important bindings of the active view, and the `?`
 dialog lists all of them.
 
+The mouse is supported as well: the wheel scrolls the panel under the cursor — moving
+the selection in the lists and the view in the code panes — and a left click focuses the
+clicked panel, moving the selection to the clicked row. Clicking the selected row again
+enters it.
+
 ## Themes
 
 The viewers ship with a dark and a light theme, matching the SatelliteToolbox ecosystem

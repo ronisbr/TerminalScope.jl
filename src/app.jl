@@ -76,6 +76,10 @@ Store the state of the interactive profile viewer application.
 - `zoom_panel::Symbol`: Panel the zoom favors, anchored when a zoom step is applied and
     unaffected by later focus changes. In the maximized mode, the fullscreen panel
     follows the focus instead (see [`zoom!`](@ref)).
+- `list_rows_rect::Rect`: Screen area of the frame list rows, written during rendering
+    and used by the mouse handling. It is empty while the panel is not shown.
+- `code_rect::Rect`: Screen area of the source panel, written during rendering and used
+    by the mouse handling. It is empty while the panel is not shown.
 """
 mutable struct ProfileViewer <: Model
     root::PVNode
@@ -102,6 +106,8 @@ mutable struct ProfileViewer <: Model
     tree_focus::Symbol
     zoom::Int
     zoom_panel::Symbol
+    list_rows_rect::Rect
+    code_rect::Rect
 end
 
 """
@@ -181,7 +187,9 @@ function _viewer(
         Base.RefValue{Any}(nothing),
         :list,
         0,
-        :list
+        :list,
+        Rect(),
+        Rect()
     )
 
     m.tasks = Tachikoma.TaskQueue(;
@@ -641,6 +649,121 @@ function _update_inspect!(m::ProfileViewer, evt::KeyEvent)
 
     elseif is_char('t')
         inspect_toggle_view!(m)
+    end
+
+    return nothing
+end
+
+############################################################################################
+#                                      Mouse Handling                                      #
+############################################################################################
+
+"""
+    _rect_contains(r::Rect, x::Int, y::Int) -> Bool
+
+Return `true` if the screen cell `(x, y)` lies inside the rectangle `r`.
+"""
+_rect_contains(r::Rect, x::Int, y::Int) =
+    (r.width > 0) && (r.height > 0) && (r.x <= x <= right(r)) && (r.y <= y <= bottom(r))
+
+"""
+    _wheel_delta(evt::MouseEvent) -> Int
+
+Return the vertical scroll direction of the mouse event `evt`: `-1` for wheel up, `+1`
+for wheel down, and `0` for any other event.
+"""
+function _wheel_delta(evt::MouseEvent)
+    (evt.button == mouse_scroll_up) && return -1
+    (evt.button == mouse_scroll_down) && return +1
+    return 0
+end
+
+"""
+    update!(m::ProfileViewer, evt::MouseEvent) -> Nothing
+
+Process the mouse event `evt`, mutating the model `m`. The wheel scrolls the panel under
+the cursor — moving the selection in the lists and the view in the code panes — and a
+left click focuses the clicked panel, moving the selection to the clicked row; clicking
+the selected row again enters it. A click closes the help dialog when it is open. All
+the other mouse events are ignored.
+"""
+function update!(m::ProfileViewer, evt::MouseEvent)
+    wheel = _wheel_delta(evt)
+    press = (evt.button == mouse_left) && (evt.action == mouse_press)
+    (press || (wheel != 0)) || return nothing
+
+    m.inspect.loading || (m.notice = "")
+
+    if m.help
+        press && (m.help = false)
+        return nothing
+    end
+
+    if m.mode == :tree
+        _mouse_tree!(m, evt, press, wheel)
+    else
+        _mouse_inspect!(m, evt, press, wheel)
+    end
+
+    return nothing
+end
+
+"""
+    _mouse_tree!(m::ProfileViewer, evt::MouseEvent, press::Bool, wheel::Int) -> Nothing
+
+Process the mouse event `evt` for the main view, mutating the model `m`. `press` tells
+whether the event is a left press and `wheel` carries the vertical scroll direction (see
+[`update!`](@ref)).
+"""
+function _mouse_tree!(m::ProfileViewer, evt::MouseEvent, press::Bool, wheel::Int)
+    if _rect_contains(m.list_rows_rect, evt.x, evt.y)
+        m.tree_focus = :list
+
+        if wheel != 0
+            move_cursor!(m, wheel)
+        elseif press
+            row = m.scroll + (evt.y - m.list_rows_rect.y) + 1
+
+            if 1 <= row <= length(m.rows)
+                (row == m.cursor) ? descend!(m) : move_cursor!(m, row - m.cursor)
+            end
+        end
+    elseif _rect_contains(m.code_rect, evt.x, evt.y)
+        m.tree_focus = :code
+        (wheel != 0) && detail_scroll!(m.detail, 3 * wheel, 0)
+    end
+
+    return nothing
+end
+
+"""
+    _mouse_inspect!(m::ProfileViewer, evt::MouseEvent, press::Bool, wheel::Int) -> Nothing
+
+Process the mouse event `evt` for the type-instability inspector, mutating the model
+`m`. `press` tells whether the event is a left press and `wheel` carries the vertical
+scroll direction (see [`update!`](@ref)).
+"""
+function _mouse_inspect!(m::ProfileViewer, evt::MouseEvent, press::Bool, wheel::Int)
+    st = m.inspect
+
+    if _rect_contains(st.calls_rect, evt.x, evt.y)
+        st.focus = :calls
+
+        if wheel != 0
+            inspect_move!(m, wheel)
+        elseif press
+            fr = inspect_top(st)
+            fr === nothing && return nothing
+            row = fr.scroll + (evt.y - st.calls_rect.y) + 1
+
+            if 1 <= row <= length(fr.entries) + 1
+                (row == fr.cursor) ? inspect_descend!(m) :
+                    inspect_move!(m, row - fr.cursor)
+            end
+        end
+    elseif _rect_contains(st.code_rect, evt.x, evt.y)
+        st.focus = :code
+        (wheel != 0) && inspect_scroll_code!(m, 3 * wheel, 0)
     end
 
     return nothing
