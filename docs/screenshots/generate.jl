@@ -9,7 +9,9 @@
 # hand-crafted, deterministic profile data over a sample workload file, so the output is
 # reproducible; the inference and type-inspector shots run the real analyses on the same
 # workload. The frames are rasterized with a real monospace font (see [`FONT_PATH`](@ref))
-# through the Tachikoma APNG exporter, so the images look identical in every viewer.
+# through the Tachikoma APNG exporter, so the images look identical in every viewer. The
+# Iosevka faces are downloaded from the official release on the first run into a cache
+# outside the repository (see [`_ensure_iosevka`](@ref)).
 #
 ############################################################################################
 
@@ -20,6 +22,7 @@ using TerminalScope
 
 import ColorTypes
 import Cthulhu
+import Downloads
 import FreeTypeAbstraction
 import PNGFiles
 import SnoopCompileCore
@@ -41,24 +44,62 @@ const CELL_H = 36
 const FONT_SIZE = 30
 
 """
+    _FONTS_DIR
+
+Cache directory of the downloaded screenshot fonts, kept outside the repository so the
+font files can never be committed.
+"""
+const _FONTS_DIR = joinpath(homedir(), ".cache", "terminalscope", "fonts")
+
+"""
+    _IOSEVKA_VERSION
+
+Pinned Iosevka release used to rasterize the screenshots.
+"""
+const _IOSEVKA_VERSION = "34.8.0"
+
+"""
+    _IOSEVKA_FACES
+
+File names of the Iosevka faces used by the rasterizer: the regular face plus the bold
+and italic siblings the glyph cache discovers from it.
+"""
+const _IOSEVKA_FACES = [
+    "Iosevka-Regular.ttf",
+    "Iosevka-Bold.ttf",
+    "Iosevka-Italic.ttf",
+    "Iosevka-BoldItalic.ttf",
+]
+
+"""
     _ensure_iosevka() -> Nothing
 
-Extract the Iosevka faces used by the screenshots from the installed TrueType
-collection into `docs/screenshots/fonts/` (see `extract_iosevka.py`), when they are not
-extracted yet and the collection plus fontTools are available. The default Iosevka
-distribution is a super collection whose first face is the Thin weight, which the
-rasterizer cannot use directly.
+Download the pinned Iosevka release into [`_FONTS_DIR`](@ref) when its faces are not
+cached yet: the official per-style TTF package is fetched (about 170 MiB, one time),
+the [`_IOSEVKA_FACES`](@ref) are extracted from it, and the archive is deleted. A
+download failure only warns, so the font candidates below can fall back to a locally
+installed font.
 """
 function _ensure_iosevka()
-    fonts_dir = joinpath(@__DIR__, "fonts")
-    isfile(joinpath(fonts_dir, "Iosevka-Regular.ttf")) && return nothing
+    all(f -> isfile(joinpath(_FONTS_DIR, f)), _IOSEVKA_FACES) && return nothing
 
-    ttc = joinpath(homedir(), "Library/Fonts/Iosevka.ttc")
-    isfile(ttc) || return nothing
-    success(`python3 -c "import fontTools"`) || return nothing
+    url = "https://github.com/be5invis/Iosevka/releases/download/" *
+        "v$(_IOSEVKA_VERSION)/PkgTTF-Iosevka-$(_IOSEVKA_VERSION).zip"
 
-    mkpath(fonts_dir)
-    run(`python3 $(joinpath(@__DIR__, "extract_iosevka.py")) $ttc $fonts_dir`)
+    try
+        mkpath(_FONTS_DIR)
+        @info "Downloading Iosevka v$(_IOSEVKA_VERSION) (about 170 MiB, one time)..."
+        archive = Downloads.download(url)
+
+        try
+            run(`unzip -o -q -j $archive $_IOSEVKA_FACES -d $_FONTS_DIR`)
+        finally
+            rm(archive; force = true)
+        end
+    catch err
+        @warn "Could not download Iosevka. Falling back to a locally installed font." err
+    end
+
     return nothing
 end
 
@@ -72,7 +113,7 @@ order of preference. The cell width is the glyph advance at [`FONT_SIZE`](@ref):
 Iosevka advances 0.5 em and the other candidates 0.6 em.
 """
 const _FONT_CANDIDATES = [
-    (joinpath(@__DIR__, "fonts", "Iosevka-Regular.ttf"), 15),
+    (joinpath(_FONTS_DIR, "Iosevka-Regular.ttf"), 15),
     (joinpath(homedir(), "Library/Fonts/JetBrainsMonoNerdFont-Regular.ttf"), 18),
     (joinpath(homedir(), "Library/Fonts/JetBrainsMono-Regular.ttf"), 18),
     (joinpath(homedir(), ".local/share/fonts/JetBrainsMonoNerdFont-Regular.ttf"), 18),
