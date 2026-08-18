@@ -43,4 +43,16 @@
 
     int_jl = Base.find_source_file("int.jl")
     ((int_jl !== nothing) && isfile(int_jl)) && @test TS.file_package("int.jl") == "Base"
+
+    # The scrollbar styles follow the panel focus: the thumb uses the border colors and
+    # the track is dimmed when the panel is unfocused.
+    track, thumb = TS.scrollbar_styles(true)
+    @test thumb.fg == TS.tstyle(:border_focus).fg
+    @test track.fg == TS.tstyle(:border).fg
+    @test !track.dim
+
+    track, thumb = TS.scrollbar_styles(false)
+    @test thumb.fg == TS.tstyle(:border).fg
+    @test track.fg == TS.tstyle(:border).fg
+    @test track.dim
 end

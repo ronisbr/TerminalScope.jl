@@ -88,4 +88,26 @@
     m2 = make_model()
     tview(m2, frame2)
     @test find_text(tb2, "Terminal") !== nothing
+
+    # The source panel scrollbar follows the focus: the thumb uses the border color
+    # when the panel is unfocused and the focus-highlighted color when it is focused.
+    m3 = make_model()
+    tb3 = TestBackend(100, 30)
+    frame3 = Tachikoma.Frame(
+        tb3.buf, Rect(1, 1, 100, 30), Tachikoma.GraphicsRegion[], Tachikoma.PixelSnapshot[]
+    )
+    tview(m3, frame3)
+
+    sb_x = right(m3.code_rect)
+    sb_ys = m3.code_rect.y:bottom(m3.code_rect)
+    colors = Set(style_at(tb3, sb_x, y).fg for y in sb_ys)
+    @test TS.tstyle(:border).fg in colors
+    @test !(TS.tstyle(:border_focus).fg in colors)
+    @test !(TS.tstyle(:accent).fg in colors)
+
+    update!(m3, KeyEvent(:char, '2'))
+    Tachikoma.reset!(tb3.buf)
+    tview(m3, frame3)
+    colors = Set(style_at(tb3, sb_x, y).fg for y in sb_ys)
+    @test TS.tstyle(:border_focus).fg in colors
 end

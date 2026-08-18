@@ -216,6 +216,19 @@ function row_name_style(node::PVNode)
 end
 
 """
+    scrollbar_styles(focused::Bool) -> Tuple{Style, Style}
+
+Return the track and thumb styles of a panel scrollbar, following the border color of
+the panel: the thumb uses the focus-highlighted border color when the panel is focused
+and the regular border color otherwise, with the track dimmed in the unfocused case so
+the thumb stays readable.
+"""
+function scrollbar_styles(focused::Bool)
+    focused && return (tstyle(:border), tstyle(:border_focus))
+    return (tstyle(:border; dim = true), tstyle(:border))
+end
+
+"""
     selection_bg() -> Color256
 
 Return the background color used to highlight the row under the cursor, adapted to the

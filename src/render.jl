@@ -320,13 +320,8 @@ function render_tree!(m::ProfileViewer, buf::Buffer, rect::Rect; focused::Bool =
     end
 
     if need_sb
-        sb = Scrollbar(
-            length(m.rows),
-            rows_h,
-            m.scroll;
-            style = tstyle(:border),
-            thumb_style = tstyle(:accent),
-        )
+        track, thumb = scrollbar_styles(focused)
+        sb = Scrollbar(length(m.rows), rows_h, m.scroll; style = track, thumb_style = thumb)
         render(sb, Rect(right(inner), rows_y, 1, rows_h), buf)
     end
 

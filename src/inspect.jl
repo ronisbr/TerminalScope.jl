@@ -808,13 +808,8 @@ function render_inspect!(m, buf::Buffer, rect::Rect)
         end
 
         if need_sb
-            sb = Scrollbar(
-                n,
-                inner.height,
-                fr.scroll;
-                style = tstyle(:border),
-                thumb_style = tstyle(:accent),
-            )
+            track, thumb = scrollbar_styles(focused)
+            sb = Scrollbar(n, inner.height, fr.scroll; style = track, thumb_style = thumb)
             render(sb, Rect(right(inner), inner.y, 1, inner.height), buf)
         end
     end
@@ -901,12 +896,13 @@ function render_inspect!(m, buf::Buffer, rect::Rect)
         end
 
         if length(lines) > inner.height
+            track, thumb = scrollbar_styles(focused)
             sb = Scrollbar(
                 length(lines),
                 inner.height,
                 fr.code_scroll;
-                style = tstyle(:border),
-                thumb_style = tstyle(:accent),
+                style = track,
+                thumb_style = thumb,
             )
             render(sb, Rect(right(inner), inner.y, 1, inner.height), buf)
         end

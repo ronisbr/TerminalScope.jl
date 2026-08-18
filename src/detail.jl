@@ -768,12 +768,13 @@ function render_source_panel!(m, buf::Buffer, rect::Rect; focused::Bool)
     end
 
     if length(d.src_lines) > inner.height
+        track, thumb = scrollbar_styles(focused)
         sb = Scrollbar(
             length(d.src_lines),
             inner.height,
             d.src_scroll;
-            style = tstyle(:border),
-            thumb_style = tstyle(:accent),
+            style = track,
+            thumb_style = thumb,
         )
         render(sb, Rect(right(inner), inner.y, 1, inner.height), buf)
     end
