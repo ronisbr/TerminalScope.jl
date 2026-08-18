@@ -26,8 +26,8 @@ const LCRST = FlameGraphs.LeftChildRightSiblingTrees
 const ND = FlameGraphs.NodeData
 
 const OUT_DIR = joinpath(@__DIR__, "src", "assets", "screenshots")
-const WIDTH = 104
-const HEIGHT = 30
+const WIDTH = 140
+const HEIGHT = 32
 
 ############################################################################################
 #                                     Sample Workload                                      #
@@ -43,8 +43,11 @@ const WORKLOAD = raw"""
 ############################################################################################
 
 function run_simulation(orbits, steps)
+    ephemeris = load_ephemeris("ephemeris.txt")
     states    = propagate_orbits(orbits, steps)
     residuals = estimate_residuals(states)
+    attitude  = interpolate_attitude(states, ephemeris)
+    write_results("results.txt", states, attitude)
     return summarize(states, residuals)
 end
 
@@ -78,6 +81,18 @@ end
 
 mean_state(states) = sum(states) / length(states)
 
+function load_ephemeris(path)
+    isfile(path) || return collect(0.0:0.1:2.0)
+    return [parse(Float64, token) for token in split(read(path, String))]
+end
+
+interpolate_attitude(states, ephemeris) = 0.5 .* (states .+ mean_state(ephemeris))
+
+function write_results(path, states, attitude)
+    open(io -> join(io, states, '\n'), path, "w")
+    return nothing
+end
+
 function summarize(states, residuals)
     report = string("mean = ", mean_state(states), ", max = ", maximum(residuals))
     return (states = states, report = report)
@@ -86,8 +101,11 @@ end
 fetch_gain(config) = config["gain"]
 
 function apply_gain(config, states)
-    gain = fetch_gain(config)
-    return [gain * s for s in states]
+    gain    = fetch_gain(config)
+    offset  = config["offset"]
+    scaled  = [gain * s for s in states]
+    shifted = [s + offset for s in scaled]
+    return sum(shifted)
 end
 """
 
@@ -106,6 +124,62 @@ Base.include(WorkloadFresh, WORKLOAD_PATH)
 ############################################################################################
 #                                         Helpers                                          #
 ############################################################################################
+
+"""
+    ANSI_BRIGHT
+
+Bright xterm-256 replacement of each of the 16 base ANSI colors, applied to the dark
+screenshots. The syntax highlighting and the typed-IR printer use the base ANSI colors,
+which real terminals render with the user palette; the SVG export would otherwise use
+the dark xterm defaults, which are unreadable on the navy background.
+"""
+const ANSI_BRIGHT = Dict{Int, Int}(
+    0 => 240,
+    1 => 203,
+    2 => 114,
+    3 => 221,
+    4 => 75,
+    5 => 213,
+    6 => 80,
+    7 => 252,
+    8 => 245,
+    9 => 210,
+    10 => 120,
+    11 => 228,
+    12 => 111,
+    13 => 219,
+    14 => 123,
+    15 => 255,
+)
+
+"""
+    _brighten_ansi(cells::Vector{Tachikoma.Cell}) -> Vector{Tachikoma.Cell}
+
+Return `cells` with every base ANSI foreground color replaced by its [`ANSI_BRIGHT`](@ref)
+equivalent.
+"""
+function _brighten_ansi(cells::Vector{Tachikoma.Cell})
+    return map(cells) do cell
+        fg = cell.style.fg
+        (fg isa Color256) || return cell
+
+        code = get(ANSI_BRIGHT, Int(fg.code), nothing)
+        code === nothing && return cell
+
+        s = cell.style
+        style = Style(
+            Color256(code),
+            s.bg,
+            s.bold,
+            s.dim,
+            s.italic,
+            s.underline,
+            s.strikethrough,
+            s.hyperlink
+        )
+        return Tachikoma.Cell(cell.char, style, cell.suffix)
+    end
+end
 
 """
     _sf(func, file, line; from_c = false) -> StackFrame
@@ -148,6 +222,10 @@ function render_svg(m, name::String; theme::Symbol = :dark)
     )
     Tachikoma.view(m, frame)
 
+    # The base ANSI colors stay untouched in the light variant, where the xterm
+    # defaults are legible on white.
+    cells = theme === :dark ? _brighten_ansi(tb.buf.content) : copy(tb.buf.content)
+
     # The background and default foreground use the design-intent SatelliteAnalysis
     # colors instead of their xterm-256 quantization, so the pages look crisp.
     bg = theme === :dark ? "#0A1929" : "#FFFFFF"
@@ -157,7 +235,7 @@ function render_svg(m, name::String; theme::Symbol = :dark)
         joinpath(OUT_DIR, name * ".svg"),
         WIDTH,
         HEIGHT,
-        [copy(tb.buf.content)],
+        [cells],
         [0.0];
         bg_color = bg,
         fg_color = fg
@@ -182,32 +260,41 @@ the sample workload, including a dynamic dispatch, a GC event, and a C frame.
 function runtime_viewer()
     root = LCRST.Node(ND(Base.StackTraces.UNKNOWN, 0x00, 1:1000))
     ev = LCRST.addchild(root, ND(_sf("eval", "boot.jl", 430), 0x00, 1:995))
-    sim = LCRST.addchild(ev, ND(_sf("run_simulation", WFILE, 8), 0x00, 1:990))
+    sim = LCRST.addchild(ev, ND(_sf("run_simulation", WFILE, 9), 0x00, 1:990))
 
-    prop = LCRST.addchild(sim, ND(_sf("propagate_orbits", WFILE, 17), 0x00, 1:700))
-    integ = LCRST.addchild(prop, ND(_sf("integrate_state", WFILE, 25), 0x00, 1:660))
-    rk4 = LCRST.addchild(integ, ND(_sf("rk4_step", WFILE, 31), 0x00, 1:640))
+    prop = LCRST.addchild(sim, ND(_sf("propagate_orbits", WFILE, 20), 0x00, 1:520))
+    integ = LCRST.addchild(prop, ND(_sf("integrate_state", WFILE, 28), 0x00, 1:490))
+    rk4 = LCRST.addchild(integ, ND(_sf("rk4_step", WFILE, 34), 0x00, 1:470))
     dyn = LCRST.addchild(
         rk4,
-        ND(_sf("dynamics", WFILE, 33), FlameGraphs.runtime_dispatch, 1:520)
+        ND(_sf("dynamics", WFILE, 36), FlameGraphs.runtime_dispatch, 1:380)
     )
-    LCRST.addchild(dyn, ND(_sf("sin", "special/trig.jl", 29), 0x00, 1:300))
-    LCRST.addchild(dyn, ND(_sf("perturbation", WFILE, 35), 0x00, 301:480))
-    LCRST.addchild(rk4, ND(_sf("+", "promotion.jl", 425), 0x00, 521:610))
+    LCRST.addchild(dyn, ND(_sf("sin", "special/trig.jl", 29), 0x00, 1:200))
+    LCRST.addchild(dyn, ND(_sf("perturbation", WFILE, 38), 0x00, 201:340))
+    LCRST.addchild(rk4, ND(_sf("+", "promotion.jl", 425), 0x00, 381:440))
 
     est = LCRST.addchild(
         sim,
-        ND(_sf("estimate_residuals", WFILE, 38), FlameGraphs.runtime_dispatch, 701:880)
+        ND(_sf("estimate_residuals", WFILE, 41), FlameGraphs.runtime_dispatch, 521:700)
     )
-    LCRST.addchild(est, ND(_sf("mean_state", WFILE, 41), 0x00, 701:800))
-    LCRST.addchild(est, ND(_sf("materialize", "broadcast.jl", 892), 0x00, 801:860))
+    LCRST.addchild(est, ND(_sf("mean_state", WFILE, 44), 0x00, 521:600))
+    LCRST.addchild(est, ND(_sf("materialize", "broadcast.jl", 892), 0x00, 601:670))
 
-    sm = LCRST.addchild(sim, ND(_sf("summarize", WFILE, 44), 0x00, 881:960))
-    LCRST.addchild(sm, ND(_sf("string", "strings/io.jl", 189), 0x00, 881:940))
+    eph = LCRST.addchild(sim, ND(_sf("load_ephemeris", WFILE, 48), 0x00, 701:790))
+    LCRST.addchild(eph, ND(_sf("read", "iostream.jl", 446), 0x00, 701:760))
+
+    sm = LCRST.addchild(sim, ND(_sf("summarize", WFILE, 59), 0x00, 791:860))
+    LCRST.addchild(sm, ND(_sf("string", "strings/io.jl", 189), 0x00, 791:845))
+
+    att = LCRST.addchild(sim, ND(_sf("interpolate_attitude", WFILE, 51), 0x00, 861:915))
+    LCRST.addchild(att, ND(_sf("materialize", "broadcast.jl", 892), 0x00, 861:900))
+
+    wr = LCRST.addchild(sim, ND(_sf("write_results", WFILE, 54), 0x00, 916:950))
+    LCRST.addchild(wr, ND(_sf("unsafe_write", "io.jl", 735), 0x00, 916:940))
 
     LCRST.addchild(
         sim,
-        ND(_sf("jl_gc_small_alloc", "gc.c", 0; from_c = true), FlameGraphs.gc_event, 961:985)
+        ND(_sf("jl_gc_small_alloc", "gc.c", 0; from_c = true), FlameGraphs.gc_event, 951:975)
     )
 
     return TS.ProfileViewer(root; compile = TS.CompileStats(3.42, 0.87, 0.12))
@@ -224,29 +311,13 @@ Create synthetic allocation profile results over the sample workload, mixing one
 buffer with many small allocations of several types.
 """
 function alloc_results()
-    st_prop = [
-        _sf("propagate_orbits", WFILE, 14),
-        _sf("run_simulation", WFILE, 8),
-        _sf("eval", "boot.jl", 430)
-    ]
-    st_integ = [
-        _sf("integrate_state", WFILE, 25),
-        _sf("propagate_orbits", WFILE, 17),
-        _sf("run_simulation", WFILE, 8),
-        _sf("eval", "boot.jl", 430)
-    ]
-    st_sum = [
-        _sf("string", "strings/io.jl", 189),
-        _sf("summarize", WFILE, 44),
-        _sf("run_simulation", WFILE, 8),
-        _sf("eval", "boot.jl", 430)
-    ]
-    st_est = [
-        _sf("materialize", "broadcast.jl", 892),
-        _sf("estimate_residuals", WFILE, 38),
-        _sf("run_simulation", WFILE, 8),
-        _sf("eval", "boot.jl", 430)
-    ]
+    st_sim = [_sf("run_simulation", WFILE, 9), _sf("eval", "boot.jl", 430)]
+    st_prop = [_sf("propagate_orbits", WFILE, 17), st_sim...]
+    st_integ = [_sf("integrate_state", WFILE, 28), _sf("propagate_orbits", WFILE, 20), st_sim...]
+    st_eph = [_sf("split", "strings/util.jl", 608), _sf("load_ephemeris", WFILE, 48), st_sim...]
+    st_sum = [_sf("string", "strings/io.jl", 189), _sf("summarize", WFILE, 59), st_sim...]
+    st_est = [_sf("materialize", "broadcast.jl", 892), _sf("estimate_residuals", WFILE, 41), st_sim...]
+    st_att = [_sf("materialize", "broadcast.jl", 892), _sf("interpolate_attitude", WFILE, 51), st_sim...]
 
     alloc(T, st, size) = Profile.Allocs.Alloc(T, st, size, C_NULL, UInt64(0))
     allocs = [alloc(Vector{Float64}, st_prop, 80_000)]
@@ -255,12 +326,20 @@ function alloc_results()
         push!(allocs, alloc(Vector{Float64}, st_integ, 1_024))
     end
 
+    for _ in 1:24
+        push!(allocs, alloc(String, st_eph, 512))
+    end
+
     for _ in 1:12
         push!(allocs, alloc(String, st_sum, 256))
     end
 
     for _ in 1:3
         push!(allocs, alloc(Vector{Float64}, st_est, 8_192))
+    end
+
+    for _ in 1:2
+        push!(allocs, alloc(Vector{Float64}, st_att, 8_192))
     end
 
     return (allocs = allocs,)
@@ -291,7 +370,8 @@ function invalidation_trees()
     W = Workload
 
     # Compile the specializations the trees reference.
-    Base.invokelatest(W.run_simulation, collect(0.1:0.1:1.0), 10)
+    Base.invokelatest(W.propagate_orbits, collect(0.1:0.1:1.0), 10)
+    Base.invokelatest(W.estimate_residuals, collect(0.1:0.1:1.0))
 
     spec(f, types...) = Cthulhu.get_specialization(f, Tuple{types...})
     mi_dyn = spec(W.dynamics, Float64)
@@ -340,11 +420,10 @@ println("Generating the documentation screenshots in $OUT_DIR:")
 
 # == Inference Profile (first, so `WorkloadFresh` is still uncompiled) =====================
 
-tinf = SnoopCompileCore.@snoop_inference Base.invokelatest(
-    WorkloadFresh.run_simulation,
-    collect(0.1:0.1:1.0),
-    50
-)
+tinf = SnoopCompileCore.@snoop_inference begin
+    Base.invokelatest(WorkloadFresh.propagate_orbits, collect(0.1:0.1:1.0), 50)
+    Base.invokelatest(WorkloadFresh.estimate_residuals, collect(0.1:0.1:1.0))
+end
 render_svg(TS.inference_viewer(tinf), "inference_profile")
 
 # == Runtime Profile =======================================================================
@@ -361,7 +440,7 @@ render_svg(TS.invalidation_viewer(invalidation_trees()), "invalidations")
 
 # == Type Inspector ========================================================================
 
-config = Dict{String, Any}("gain" => 2.0)
+config = Dict{String, Any}("gain" => 2.0, "offset" => 0.5)
 Base.invokelatest(Workload.apply_gain, config, [1.0, 2.0])
 mi = Cthulhu.get_specialization(
     Workload.apply_gain,

@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="832" height="480" viewBox="0 0 832 480" style="background:#0A1929;color-scheme:dark">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="512" viewBox="0 0 1120 512" style="background:#0A1929;color-scheme:dark">
 <defs>
 <pattern id="stip1" width="4" height="2" patternUnits="userSpaceOnUse"><rect x="0" y="0" width="1" height="1" fill="white"/><rect x="2" y="1" width="1" height="1" fill="white"/></pattern>
 <pattern id="stip2" width="2" height="2" patternUnits="userSpaceOnUse"><rect x="0" y="0" width="1" height="1" fill="white"/><rect x="1" y="1" width="1" height="1" fill="white"/></pattern>
 <pattern id="stip3" width="4" height="2" patternUnits="userSpaceOnUse"><rect width="4" height="2" fill="white"/><rect x="0" y="0" width="1" height="1" fill="black"/><rect x="2" y="1" width="1" height="1" fill="black"/></pattern>
-<mask id="m1"><rect width="832" height="480" fill="url(#stip1)"/></mask>
-<mask id="m2"><rect width="832" height="480" fill="url(#stip2)"/></mask>
-<mask id="m3"><rect width="832" height="480" fill="url(#stip3)"/></mask>
+<mask id="m1"><rect width="1120" height="512" fill="url(#stip1)"/></mask>
+<mask id="m2"><rect width="1120" height="512" fill="url(#stip2)"/></mask>
+<mask id="m3"><rect width="1120" height="512" fill="url(#stip3)"/></mask>
 </defs>
 <style>
 text{font-family:'MesloLGS NF','MesloLGM NF','JetBrains Mono','Menlo','DejaVu Sans Mono','Consolas',monospace;font-size:14px;white-space:pre;}
 </style>
-<rect width="832" height="480" fill="#0A1929"/>
+<rect width="1120" height="512" fill="#0A1929"/>
 <g visibility="hidden">
   <animate attributeName="visibility" dur="1.0s" repeatCount="indefinite" calcMode="discrete" values="visible;hidden" keyTimes="0;1.0"/>
   <rect x="8" y="112" width="8" height="16" fill="#3a3a3a"/>
@@ -58,23 +58,23 @@ text{font-family:'MesloLGS NF','MesloLGM NF','JetBrains Mono','Menlo','DejaVu Sa
   <rect x="336" y="112" width="8" height="16" fill="#3a3a3a"/>
   <rect x="344" y="112" width="8" height="16" fill="#3a3a3a"/>
   <rect x="352" y="112" width="8" height="16" fill="#3a3a3a"/>
-  <rect x="376" y="128" width="8" height="16" fill="#3a3a3a"/>
-  <rect x="384" y="128" width="8" height="16" fill="#3a3a3a"/>
-  <rect x="392" y="128" width="8" height="16" fill="#3a3a3a"/>
-  <rect x="400" y="128" width="8" height="16" fill="#3a3a3a"/>
-  <rect x="408" y="128" width="8" height="16" fill="#3a3a3a"/>
-  <rect x="416" y="128" width="8" height="16" fill="#3a3a3a"/>
-  <rect x="424" y="128" width="8" height="16" fill="#3a3a3a"/>
-  <rect x="432" y="128" width="8" height="16" fill="#3a3a3a"/>
-  <rect x="440" y="128" width="8" height="16" fill="#3a3a3a"/>
-  <rect x="448" y="128" width="8" height="16" fill="#3a3a3a"/>
-  <rect x="456" y="128" width="8" height="16" fill="#3a3a3a"/>
-  <rect x="464" y="128" width="8" height="16" fill="#3a3a3a"/>
-  <rect x="472" y="128" width="8" height="16" fill="#3a3a3a"/>
-  <rect x="480" y="128" width="8" height="16" fill="#3a3a3a"/>
-  <rect x="488" y="128" width="8" height="16" fill="#3a3a3a"/>
-  <rect x="496" y="128" width="8" height="16" fill="#3a3a3a"/>
-  <rect x="504" y="128" width="8" height="16" fill="#3a3a3a"/>
+  <rect x="360" y="112" width="8" height="16" fill="#3a3a3a"/>
+  <rect x="368" y="112" width="8" height="16" fill="#3a3a3a"/>
+  <rect x="376" y="112" width="8" height="16" fill="#3a3a3a"/>
+  <rect x="384" y="112" width="8" height="16" fill="#3a3a3a"/>
+  <rect x="392" y="112" width="8" height="16" fill="#3a3a3a"/>
+  <rect x="400" y="112" width="8" height="16" fill="#3a3a3a"/>
+  <rect x="408" y="112" width="8" height="16" fill="#3a3a3a"/>
+  <rect x="416" y="112" width="8" height="16" fill="#3a3a3a"/>
+  <rect x="424" y="112" width="8" height="16" fill="#3a3a3a"/>
+  <rect x="432" y="112" width="8" height="16" fill="#3a3a3a"/>
+  <rect x="440" y="112" width="8" height="16" fill="#3a3a3a"/>
+  <rect x="448" y="112" width="8" height="16" fill="#3a3a3a"/>
+  <rect x="456" y="112" width="8" height="16" fill="#3a3a3a"/>
+  <rect x="464" y="112" width="8" height="16" fill="#3a3a3a"/>
+  <rect x="472" y="112" width="8" height="16" fill="#3a3a3a"/>
+  <rect x="480" y="112" width="8" height="16" fill="#3a3a3a"/>
+  <rect x="488" y="112" width="8" height="16" fill="#3a3a3a"/>
   <rect x="512" y="128" width="8" height="16" fill="#3a3a3a"/>
   <rect x="520" y="128" width="8" height="16" fill="#3a3a3a"/>
   <rect x="528" y="128" width="8" height="16" fill="#3a3a3a"/>
@@ -113,12 +113,48 @@ text{font-family:'MesloLGS NF','MesloLGM NF','JetBrains Mono','Menlo','DejaVu Sa
   <rect x="792" y="128" width="8" height="16" fill="#3a3a3a"/>
   <rect x="800" y="128" width="8" height="16" fill="#3a3a3a"/>
   <rect x="808" y="128" width="8" height="16" fill="#3a3a3a"/>
+  <rect x="816" y="128" width="8" height="16" fill="#3a3a3a"/>
+  <rect x="824" y="128" width="8" height="16" fill="#3a3a3a"/>
+  <rect x="832" y="128" width="8" height="16" fill="#3a3a3a"/>
+  <rect x="840" y="128" width="8" height="16" fill="#3a3a3a"/>
+  <rect x="848" y="128" width="8" height="16" fill="#3a3a3a"/>
+  <rect x="856" y="128" width="8" height="16" fill="#3a3a3a"/>
+  <rect x="864" y="128" width="8" height="16" fill="#3a3a3a"/>
+  <rect x="872" y="128" width="8" height="16" fill="#3a3a3a"/>
+  <rect x="880" y="128" width="8" height="16" fill="#3a3a3a"/>
+  <rect x="888" y="128" width="8" height="16" fill="#3a3a3a"/>
+  <rect x="896" y="128" width="8" height="16" fill="#3a3a3a"/>
+  <rect x="904" y="128" width="8" height="16" fill="#3a3a3a"/>
+  <rect x="912" y="128" width="8" height="16" fill="#3a3a3a"/>
+  <rect x="920" y="128" width="8" height="16" fill="#3a3a3a"/>
+  <rect x="928" y="128" width="8" height="16" fill="#3a3a3a"/>
+  <rect x="936" y="128" width="8" height="16" fill="#3a3a3a"/>
+  <rect x="944" y="128" width="8" height="16" fill="#3a3a3a"/>
+  <rect x="952" y="128" width="8" height="16" fill="#3a3a3a"/>
+  <rect x="960" y="128" width="8" height="16" fill="#3a3a3a"/>
+  <rect x="968" y="128" width="8" height="16" fill="#3a3a3a"/>
+  <rect x="976" y="128" width="8" height="16" fill="#3a3a3a"/>
+  <rect x="984" y="128" width="8" height="16" fill="#3a3a3a"/>
+  <rect x="992" y="128" width="8" height="16" fill="#3a3a3a"/>
+  <rect x="1000" y="128" width="8" height="16" fill="#3a3a3a"/>
+  <rect x="1008" y="128" width="8" height="16" fill="#3a3a3a"/>
+  <rect x="1016" y="128" width="8" height="16" fill="#3a3a3a"/>
+  <rect x="1024" y="128" width="8" height="16" fill="#3a3a3a"/>
+  <rect x="1032" y="128" width="8" height="16" fill="#3a3a3a"/>
+  <rect x="1040" y="128" width="8" height="16" fill="#3a3a3a"/>
+  <rect x="1048" y="128" width="8" height="16" fill="#3a3a3a"/>
+  <rect x="1056" y="128" width="8" height="16" fill="#3a3a3a"/>
+  <rect x="1064" y="128" width="8" height="16" fill="#3a3a3a"/>
+  <rect x="1072" y="128" width="8" height="16" fill="#3a3a3a"/>
+  <rect x="1080" y="128" width="8" height="16" fill="#3a3a3a"/>
+  <rect x="1088" y="128" width="8" height="16" fill="#3a3a3a"/>
+  <rect x="1096" y="128" width="8" height="16" fill="#3a3a3a"/>
   <text y="13">
     <tspan x="0" textLength="16" lengthAdjust="spacingAndGlyphs" fill="#005f87">╭─</tspan>
     <tspan x="16" textLength="88" lengthAdjust="spacingAndGlyphs" fill="#ffaf00" font-weight="bold" stroke="#ffaf00" stroke-width="0.4">  Profile  </tspan>
-    <tspan x="104" textLength="552" lengthAdjust="spacingAndGlyphs" fill="#005f87">─────────────────────────────────────────────────────────────────────</tspan>
-    <tspan x="656" textLength="160" lengthAdjust="spacingAndGlyphs" fill="#87afaf">  TerminalScope.jl  </tspan>
-    <tspan x="816" textLength="16" lengthAdjust="spacingAndGlyphs" fill="#005f87">─╮</tspan>
+    <tspan x="104" textLength="840" lengthAdjust="spacingAndGlyphs" fill="#005f87">─────────────────────────────────────────────────────────────────────────────────────────────────────────</tspan>
+    <tspan x="944" textLength="160" lengthAdjust="spacingAndGlyphs" fill="#87afaf">  TerminalScope.jl  </tspan>
+    <tspan x="1104" textLength="16" lengthAdjust="spacingAndGlyphs" fill="#005f87">─╮</tspan>
   </text>
   <text y="29">
     <tspan x="0" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#005f87">│</tspan>
@@ -129,248 +165,284 @@ text{font-family:'MesloLGS NF','MesloLGM NF','JetBrains Mono','Menlo','DejaVu Sa
     <tspan x="240" textLength="104" lengthAdjust="spacingAndGlyphs" fill="#87afaf">   Est. Time </tspan>
     <tspan x="344" textLength="40" lengthAdjust="spacingAndGlyphs" fill="#ffaf00" font-weight="bold" stroke="#ffaf00" stroke-width="0.4">1.0 s</tspan>
     <tspan x="384" textLength="72" lengthAdjust="spacingAndGlyphs" fill="#87afaf">   Nodes </tspan>
-    <tspan x="456" textLength="48" lengthAdjust="spacingAndGlyphs" fill="#ffaf00" font-weight="bold" stroke="#ffaf00" stroke-width="0.4">5 / 16</tspan>
-    <tspan x="824" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#005f87">│</tspan>
+    <tspan x="456" textLength="48" lengthAdjust="spacingAndGlyphs" fill="#ffaf00" font-weight="bold" stroke="#ffaf00" stroke-width="0.4">8 / 22</tspan>
+    <tspan x="1112" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#005f87">│</tspan>
   </text>
   <text y="45">
     <tspan x="0" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#005f87">│</tspan>
     <tspan x="16" textLength="64" lengthAdjust="spacingAndGlyphs" fill="#87afaf">Compile </tspan>
     <tspan x="80" textLength="64" lengthAdjust="spacingAndGlyphs" fill="#ffaf00" font-weight="bold" stroke="#ffaf00" stroke-width="0.4">870.0 ms</tspan>
     <tspan x="144" textLength="288" lengthAdjust="spacingAndGlyphs" fill="#87afaf"> (25.4% of run, 13.8% recompilation)</tspan>
-    <tspan x="824" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#005f87">│</tspan>
+    <tspan x="1112" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#005f87">│</tspan>
   </text>
   <text y="61">
-    <tspan x="0" textLength="832" lengthAdjust="spacingAndGlyphs" fill="#005f87">╰──────────────────────────────────────────────────────────────────────────────────────────────────────╯</tspan>
+    <tspan x="0" textLength="1120" lengthAdjust="spacingAndGlyphs" fill="#005f87">╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯</tspan>
   </text>
   <text y="77">
     <tspan x="0" textLength="16" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">╭─</tspan>
     <tspan x="16" textLength="112" lengthAdjust="spacingAndGlyphs" fill="#ffaf00" font-weight="bold" stroke="#ffaf00" stroke-width="0.4">  [1] Frames  </tspan>
-    <tspan x="128" textLength="240" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">─────────────────────────────╮</tspan>
-    <tspan x="368" textLength="16" lengthAdjust="spacingAndGlyphs" fill="#005f87">╭─</tspan>
-    <tspan x="384" textLength="152" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">  [2] workload.jl  </tspan>
-    <tspan x="536" textLength="296" lengthAdjust="spacingAndGlyphs" fill="#005f87">────────────────────────────────────╮</tspan>
+    <tspan x="128" textLength="376" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">──────────────────────────────────────────────╮</tspan>
+    <tspan x="504" textLength="16" lengthAdjust="spacingAndGlyphs" fill="#005f87">╭─</tspan>
+    <tspan x="520" textLength="152" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">  [2] workload.jl  </tspan>
+    <tspan x="672" textLength="448" lengthAdjust="spacingAndGlyphs" fill="#005f87">───────────────────────────────────────────────────────╮</tspan>
   </text>
   <text y="93">
     <tspan x="0" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">│</tspan>
     <tspan x="24" textLength="40" lengthAdjust="spacingAndGlyphs" fill="#87afaf" font-weight="bold" stroke="#87afaf" stroke-width="0.4">Frame</tspan>
-    <tspan x="240" textLength="56" lengthAdjust="spacingAndGlyphs" fill="#87afaf" font-weight="bold" stroke="#87afaf" stroke-width="0.4">Samples</tspan>
-    <tspan x="312" textLength="48" lengthAdjust="spacingAndGlyphs" fill="#87afaf" font-weight="bold" stroke="#87afaf" stroke-width="0.4"> Total</tspan>
-    <tspan x="360" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">│</tspan>
-    <tspan x="368" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#005f87">│</tspan>
-    <tspan x="384" textLength="128" lengthAdjust="spacingAndGlyphs" fill="#ffaf00" font-weight="bold" stroke="#ffaf00" stroke-width="0.4">propagate_orbits</tspan>
-    <tspan x="512" textLength="128" lengthAdjust="spacingAndGlyphs" fill="#87afaf" font-style="italic">  workload.jl:17</tspan>
-    <tspan x="824" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#005f87">│</tspan>
+    <tspan x="296" textLength="64" lengthAdjust="spacingAndGlyphs" fill="#87afaf" font-weight="bold" stroke="#87afaf" stroke-width="0.4">    Cost</tspan>
+    <tspan x="376" textLength="56" lengthAdjust="spacingAndGlyphs" fill="#87afaf" font-weight="bold" stroke="#87afaf" stroke-width="0.4">Samples</tspan>
+    <tspan x="448" textLength="48" lengthAdjust="spacingAndGlyphs" fill="#87afaf" font-weight="bold" stroke="#87afaf" stroke-width="0.4"> Total</tspan>
+    <tspan x="496" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">│</tspan>
+    <tspan x="504" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#005f87">│</tspan>
+    <tspan x="520" textLength="128" lengthAdjust="spacingAndGlyphs" fill="#ffaf00" font-weight="bold" stroke="#ffaf00" stroke-width="0.4">propagate_orbits</tspan>
+    <tspan x="648" textLength="128" lengthAdjust="spacingAndGlyphs" fill="#87afaf" font-style="italic">  workload.jl:20</tspan>
+    <tspan x="1112" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#005f87">│</tspan>
   </text>
   <text y="109">
     <tspan x="0" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">│</tspan>
     <tspan x="8" textLength="16" lengthAdjust="spacingAndGlyphs" fill="#87afaf">⬑ </tspan>
     <tspan x="24" textLength="112" lengthAdjust="spacingAndGlyphs" fill="#ff5faf" font-weight="bold" stroke="#ff5faf" stroke-width="0.4">run_simulation</tspan>
-    <tspan x="136" textLength="96" lengthAdjust="spacingAndGlyphs" fill="#87afaf" font-style="italic">  workload.j</tspan>
-    <tspan x="240" textLength="56" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">    990</tspan>
-    <tspan x="312" textLength="48" lengthAdjust="spacingAndGlyphs" fill="#87afaf"> 99.0%</tspan>
-    <tspan x="360" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">│</tspan>
-    <tspan x="368" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#005f87">│</tspan>
-    <tspan x="384" textLength="64" lengthAdjust="spacingAndGlyphs" fill="#87afaf">Samples </tspan>
-    <tspan x="448" textLength="24" lengthAdjust="spacingAndGlyphs" fill="#ffaf00" font-weight="bold" stroke="#ffaf00" stroke-width="0.4">700</tspan>
-    <tspan x="472" textLength="16" lengthAdjust="spacingAndGlyphs" fill="#87afaf"> (</tspan>
-    <tspan x="488" textLength="64" lengthAdjust="spacingAndGlyphs" fill="#eeeeee">700.0 ms</tspan>
-    <tspan x="552" textLength="72" lengthAdjust="spacingAndGlyphs" fill="#87afaf">)   Self </tspan>
-    <tspan x="624" textLength="16" lengthAdjust="spacingAndGlyphs" fill="#eeeeee">40</tspan>
-    <tspan x="640" textLength="72" lengthAdjust="spacingAndGlyphs" fill="#87afaf">   Total </tspan>
-    <tspan x="712" textLength="40" lengthAdjust="spacingAndGlyphs" fill="#ffaf00" font-weight="bold" stroke="#ffaf00" stroke-width="0.4">70.0%</tspan>
-    <tspan x="752" textLength="72" lengthAdjust="spacingAndGlyphs" fill="#87afaf">   Parent</tspan>
-    <tspan x="824" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#005f87">│</tspan>
+    <tspan x="136" textLength="120" lengthAdjust="spacingAndGlyphs" fill="#87afaf" font-style="italic">  workload.jl:9</tspan>
+    <tspan x="376" textLength="56" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">    990</tspan>
+    <tspan x="448" textLength="48" lengthAdjust="spacingAndGlyphs" fill="#87afaf"> 99.0%</tspan>
+    <tspan x="496" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">│</tspan>
+    <tspan x="504" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#005f87">│</tspan>
+    <tspan x="520" textLength="64" lengthAdjust="spacingAndGlyphs" fill="#87afaf">Samples </tspan>
+    <tspan x="584" textLength="24" lengthAdjust="spacingAndGlyphs" fill="#ffaf00" font-weight="bold" stroke="#ffaf00" stroke-width="0.4">520</tspan>
+    <tspan x="608" textLength="16" lengthAdjust="spacingAndGlyphs" fill="#87afaf"> (</tspan>
+    <tspan x="624" textLength="64" lengthAdjust="spacingAndGlyphs" fill="#eeeeee">520.0 ms</tspan>
+    <tspan x="688" textLength="72" lengthAdjust="spacingAndGlyphs" fill="#87afaf">)   Self </tspan>
+    <tspan x="760" textLength="16" lengthAdjust="spacingAndGlyphs" fill="#eeeeee">30</tspan>
+    <tspan x="776" textLength="72" lengthAdjust="spacingAndGlyphs" fill="#87afaf">   Total </tspan>
+    <tspan x="848" textLength="40" lengthAdjust="spacingAndGlyphs" fill="#ffaf00" font-weight="bold" stroke="#ffaf00" stroke-width="0.4">52.0%</tspan>
+    <tspan x="888" textLength="80" lengthAdjust="spacingAndGlyphs" fill="#87afaf">   Parent </tspan>
+    <tspan x="968" textLength="40" lengthAdjust="spacingAndGlyphs" fill="#eeeeee">52.5%</tspan>
+    <tspan x="1112" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#005f87">│</tspan>
   </text>
   <text y="125">
     <tspan x="0" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">│</tspan>
     <tspan x="8" textLength="16" lengthAdjust="spacingAndGlyphs" fill="#87afaf">▸ </tspan>
     <tspan x="24" textLength="128" lengthAdjust="spacingAndGlyphs" fill="#5fafff" font-weight="bold" stroke="#5fafff" stroke-width="0.4">propagate_orbits</tspan>
-    <tspan x="152" textLength="80" lengthAdjust="spacingAndGlyphs" fill="#87afaf" font-style="italic">  workload</tspan>
-    <tspan x="240" textLength="56" lengthAdjust="spacingAndGlyphs" fill="#ffaf00" font-weight="bold" stroke="#ffaf00" stroke-width="0.4">    700</tspan>
-    <tspan x="312" textLength="48" lengthAdjust="spacingAndGlyphs" fill="#87afaf"> 70.0%</tspan>
-    <tspan x="360" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">│</tspan>
-    <tspan x="368" textLength="464" lengthAdjust="spacingAndGlyphs" fill="#005f87">│────────────────────────────────────────────────────────│</tspan>
+    <tspan x="152" textLength="128" lengthAdjust="spacingAndGlyphs" fill="#87afaf" font-style="italic">  workload.jl:20</tspan>
+    <tspan x="376" textLength="56" lengthAdjust="spacingAndGlyphs" fill="#ffaf00" font-weight="bold" stroke="#ffaf00" stroke-width="0.4">    520</tspan>
+    <tspan x="448" textLength="48" lengthAdjust="spacingAndGlyphs" fill="#87afaf"> 52.0%</tspan>
+    <tspan x="496" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">│</tspan>
+    <tspan x="504" textLength="616" lengthAdjust="spacingAndGlyphs" fill="#005f87">│───────────────────────────────────────────────────────────────────────────│</tspan>
   </text>
   <text y="141">
     <tspan x="0" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">│</tspan>
     <tspan x="8" textLength="16" lengthAdjust="spacingAndGlyphs" fill="#87afaf">▸ </tspan>
     <tspan x="24" textLength="144" lengthAdjust="spacingAndGlyphs" fill="#ff5f5f">estimate_residuals</tspan>
     <tspan x="168" textLength="48" lengthAdjust="spacingAndGlyphs" fill="#ff5f5f" font-weight="bold" stroke="#ff5f5f" stroke-width="0.4"> [dyn]</tspan>
-    <tspan x="240" textLength="56" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">    180</tspan>
-    <tspan x="312" textLength="48" lengthAdjust="spacingAndGlyphs" fill="#87afaf"> 18.0%</tspan>
-    <tspan x="360" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">│</tspan>
-    <tspan x="368" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#005f87">│</tspan>
-    <tspan x="376" textLength="48" lengthAdjust="spacingAndGlyphs" fill="#ffaf00" font-weight="bold" stroke="#ffaf00" stroke-width="0.4"> 17 ▶ </tspan>
-    <tspan x="424" textLength="376" lengthAdjust="spacingAndGlyphs" fill="#F1F5F9">        states[i] = integrate_state(orb, steps)</tspan>
-    <tspan x="816" textLength="16" lengthAdjust="spacingAndGlyphs" fill="#005f87">││</tspan>
+    <tspan x="216" textLength="72" lengthAdjust="spacingAndGlyphs" fill="#87afaf" font-style="italic">  workloa</tspan>
+    <tspan x="376" textLength="56" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">    180</tspan>
+    <tspan x="448" textLength="48" lengthAdjust="spacingAndGlyphs" fill="#87afaf"> 18.0%</tspan>
+    <tspan x="496" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">│</tspan>
+    <tspan x="504" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#005f87">│</tspan>
+    <tspan x="512" textLength="48" lengthAdjust="spacingAndGlyphs" fill="#ffaf00" font-weight="bold" stroke="#ffaf00" stroke-width="0.4"> 20 ▶ </tspan>
+    <tspan x="560" textLength="376" lengthAdjust="spacingAndGlyphs" fill="#F1F5F9">        states[i] = integrate_state(orb, steps)</tspan>
+    <tspan x="1104" textLength="16" lengthAdjust="spacingAndGlyphs" fill="#005f87">││</tspan>
   </text>
   <text y="157">
     <tspan x="0" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">│</tspan>
     <tspan x="8" textLength="16" lengthAdjust="spacingAndGlyphs" fill="#87afaf">▸ </tspan>
-    <tspan x="24" textLength="72" lengthAdjust="spacingAndGlyphs" fill="#eeeeee">summarize</tspan>
-    <tspan x="96" textLength="128" lengthAdjust="spacingAndGlyphs" fill="#87afaf" font-style="italic">  workload.jl:44</tspan>
-    <tspan x="240" textLength="56" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">     80</tspan>
-    <tspan x="312" textLength="48" lengthAdjust="spacingAndGlyphs" fill="#87afaf">  8.0%</tspan>
-    <tspan x="360" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">│</tspan>
-    <tspan x="368" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#005f87">│</tspan>
-    <tspan x="376" textLength="24" lengthAdjust="spacingAndGlyphs" fill="#87afaf"> 18</tspan>
-    <tspan x="456" textLength="24" lengthAdjust="spacingAndGlyphs" fill="#800000">end</tspan>
-    <tspan x="816" textLength="16" lengthAdjust="spacingAndGlyphs" fill="#005f87">││</tspan>
+    <tspan x="24" textLength="112" lengthAdjust="spacingAndGlyphs" fill="#eeeeee">load_ephemeris</tspan>
+    <tspan x="136" textLength="128" lengthAdjust="spacingAndGlyphs" fill="#87afaf" font-style="italic">  workload.jl:48</tspan>
+    <tspan x="376" textLength="56" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">     90</tspan>
+    <tspan x="448" textLength="48" lengthAdjust="spacingAndGlyphs" fill="#87afaf">  9.0%</tspan>
+    <tspan x="496" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">│</tspan>
+    <tspan x="504" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#005f87">│</tspan>
+    <tspan x="512" textLength="24" lengthAdjust="spacingAndGlyphs" fill="#87afaf"> 21</tspan>
+    <tspan x="592" textLength="24" lengthAdjust="spacingAndGlyphs" fill="#ff5f5f">end</tspan>
+    <tspan x="1104" textLength="16" lengthAdjust="spacingAndGlyphs" fill="#005f87">││</tspan>
   </text>
   <text y="173">
+    <tspan x="0" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">│</tspan>
+    <tspan x="8" textLength="16" lengthAdjust="spacingAndGlyphs" fill="#87afaf">▸ </tspan>
+    <tspan x="24" textLength="72" lengthAdjust="spacingAndGlyphs" fill="#eeeeee">summarize</tspan>
+    <tspan x="96" textLength="128" lengthAdjust="spacingAndGlyphs" fill="#87afaf" font-style="italic">  workload.jl:59</tspan>
+    <tspan x="376" textLength="56" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">     70</tspan>
+    <tspan x="448" textLength="48" lengthAdjust="spacingAndGlyphs" fill="#87afaf">  7.0%</tspan>
+    <tspan x="496" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">│</tspan>
+    <tspan x="504" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#005f87">│</tspan>
+    <tspan x="512" textLength="24" lengthAdjust="spacingAndGlyphs" fill="#87afaf"> 22</tspan>
+    <tspan x="1104" textLength="16" lengthAdjust="spacingAndGlyphs" fill="#005f87">││</tspan>
+  </text>
+  <text y="189">
+    <tspan x="0" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">│</tspan>
+    <tspan x="8" textLength="16" lengthAdjust="spacingAndGlyphs" fill="#87afaf">▸ </tspan>
+    <tspan x="24" textLength="160" lengthAdjust="spacingAndGlyphs" fill="#eeeeee">interpolate_attitude</tspan>
+    <tspan x="184" textLength="104" lengthAdjust="spacingAndGlyphs" fill="#87afaf" font-style="italic">  workload.jl</tspan>
+    <tspan x="376" textLength="56" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">     55</tspan>
+    <tspan x="448" textLength="48" lengthAdjust="spacingAndGlyphs" fill="#87afaf">  5.5%</tspan>
+    <tspan x="496" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">│</tspan>
+    <tspan x="504" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#005f87">│</tspan>
+    <tspan x="512" textLength="24" lengthAdjust="spacingAndGlyphs" fill="#87afaf"> 23</tspan>
+    <tspan x="592" textLength="48" lengthAdjust="spacingAndGlyphs" fill="#ff5f5f">return</tspan>
+    <tspan x="640" textLength="464" lengthAdjust="spacingAndGlyphs" fill="#F1F5F9"> states                                                   </tspan>
+    <tspan x="1104" textLength="16" lengthAdjust="spacingAndGlyphs" fill="#005f87">││</tspan>
+  </text>
+  <text y="205">
+    <tspan x="0" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">│</tspan>
+    <tspan x="8" textLength="16" lengthAdjust="spacingAndGlyphs" fill="#87afaf">▸ </tspan>
+    <tspan x="24" textLength="104" lengthAdjust="spacingAndGlyphs" fill="#eeeeee">write_results</tspan>
+    <tspan x="128" textLength="128" lengthAdjust="spacingAndGlyphs" fill="#87afaf" font-style="italic">  workload.jl:54</tspan>
+    <tspan x="376" textLength="56" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">     35</tspan>
+    <tspan x="448" textLength="48" lengthAdjust="spacingAndGlyphs" fill="#87afaf">  3.5%</tspan>
+    <tspan x="496" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">│</tspan>
+    <tspan x="504" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#005f87">│</tspan>
+    <tspan x="512" textLength="24" lengthAdjust="spacingAndGlyphs" fill="#87afaf"> 24</tspan>
+    <tspan x="560" textLength="24" lengthAdjust="spacingAndGlyphs" fill="#ff5f5f">end</tspan>
+    <tspan x="1104" textLength="16" lengthAdjust="spacingAndGlyphs" fill="#005f87">││</tspan>
+  </text>
+  <text y="221">
     <tspan x="0" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">│</tspan>
     <tspan x="8" textLength="16" lengthAdjust="spacingAndGlyphs" fill="#87afaf">· </tspan>
     <tspan x="24" textLength="136" lengthAdjust="spacingAndGlyphs" fill="#ffd700">jl_gc_small_alloc</tspan>
     <tspan x="160" textLength="40" lengthAdjust="spacingAndGlyphs" fill="#ffd700" font-weight="bold" stroke="#ffd700" stroke-width="0.4"> [GC]</tspan>
-    <tspan x="200" textLength="32" lengthAdjust="spacingAndGlyphs" fill="#87afaf" font-style="italic">  gc</tspan>
-    <tspan x="240" textLength="56" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">     25</tspan>
-    <tspan x="312" textLength="48" lengthAdjust="spacingAndGlyphs" fill="#87afaf">  2.5%</tspan>
-    <tspan x="360" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">│</tspan>
-    <tspan x="368" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#005f87">│</tspan>
-    <tspan x="376" textLength="24" lengthAdjust="spacingAndGlyphs" fill="#87afaf"> 19</tspan>
-    <tspan x="816" textLength="16" lengthAdjust="spacingAndGlyphs" fill="#005f87">││</tspan>
-  </text>
-  <text y="189">
-    <tspan x="0" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">│</tspan>
-    <tspan x="360" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">│</tspan>
-    <tspan x="368" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#005f87">│</tspan>
-    <tspan x="376" textLength="24" lengthAdjust="spacingAndGlyphs" fill="#87afaf"> 20</tspan>
-    <tspan x="456" textLength="48" lengthAdjust="spacingAndGlyphs" fill="#800000">return</tspan>
-    <tspan x="504" textLength="312" lengthAdjust="spacingAndGlyphs" fill="#F1F5F9"> states                                </tspan>
-    <tspan x="816" textLength="16" lengthAdjust="spacingAndGlyphs" fill="#005f87">││</tspan>
-  </text>
-  <text y="205">
-    <tspan x="0" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">│</tspan>
-    <tspan x="360" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">│</tspan>
-    <tspan x="368" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#005f87">│</tspan>
-    <tspan x="376" textLength="24" lengthAdjust="spacingAndGlyphs" fill="#87afaf"> 21</tspan>
-    <tspan x="424" textLength="24" lengthAdjust="spacingAndGlyphs" fill="#800000">end</tspan>
-    <tspan x="816" textLength="16" lengthAdjust="spacingAndGlyphs" fill="#005f87">││</tspan>
-  </text>
-  <text y="221">
-    <tspan x="0" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">│</tspan>
-    <tspan x="360" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">│</tspan>
-    <tspan x="368" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#005f87">│</tspan>
-    <tspan x="376" textLength="24" lengthAdjust="spacingAndGlyphs" fill="#87afaf"> 22</tspan>
-    <tspan x="816" textLength="16" lengthAdjust="spacingAndGlyphs" fill="#005f87">││</tspan>
+    <tspan x="200" textLength="64" lengthAdjust="spacingAndGlyphs" fill="#87afaf" font-style="italic">  gc.c:0</tspan>
+    <tspan x="376" textLength="56" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">     25</tspan>
+    <tspan x="448" textLength="48" lengthAdjust="spacingAndGlyphs" fill="#87afaf">  2.5%</tspan>
+    <tspan x="496" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">│</tspan>
+    <tspan x="504" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#005f87">│</tspan>
+    <tspan x="512" textLength="24" lengthAdjust="spacingAndGlyphs" fill="#87afaf"> 25</tspan>
+    <tspan x="1104" textLength="16" lengthAdjust="spacingAndGlyphs" fill="#005f87">││</tspan>
   </text>
   <text y="237">
     <tspan x="0" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">│</tspan>
-    <tspan x="360" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">│</tspan>
-    <tspan x="368" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#005f87">│</tspan>
-    <tspan x="376" textLength="24" lengthAdjust="spacingAndGlyphs" fill="#87afaf"> 23</tspan>
-    <tspan x="424" textLength="64" lengthAdjust="spacingAndGlyphs" fill="#800000">function</tspan>
-    <tspan x="488" textLength="328" lengthAdjust="spacingAndGlyphs" fill="#F1F5F9"> integrate_state(state, steps)           </tspan>
-    <tspan x="824" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#005f87">│</tspan>
+    <tspan x="496" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">│</tspan>
+    <tspan x="504" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#005f87">│</tspan>
+    <tspan x="512" textLength="24" lengthAdjust="spacingAndGlyphs" fill="#87afaf"> 26</tspan>
+    <tspan x="560" textLength="64" lengthAdjust="spacingAndGlyphs" fill="#ff5f5f">function</tspan>
+    <tspan x="624" textLength="480" lengthAdjust="spacingAndGlyphs" fill="#F1F5F9"> integrate_state(state, steps)                              </tspan>
+    <tspan x="1112" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#005f87">│</tspan>
   </text>
   <text y="253">
     <tspan x="0" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">│</tspan>
-    <tspan x="360" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">│</tspan>
-    <tspan x="368" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#005f87">│</tspan>
-    <tspan x="376" textLength="24" lengthAdjust="spacingAndGlyphs" fill="#87afaf"> 24</tspan>
-    <tspan x="456" textLength="48" lengthAdjust="spacingAndGlyphs" fill="#800000">for _ </tspan>
-    <tspan x="504" textLength="16" lengthAdjust="spacingAndGlyphs" fill="#F1F5F9">in</tspan>
-    <tspan x="528" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#F1F5F9">1</tspan>
-    <tspan x="536" textLength="48" lengthAdjust="spacingAndGlyphs" fill="#800000">:steps</tspan>
-    <tspan x="824" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#005f87">│</tspan>
+    <tspan x="496" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">│</tspan>
+    <tspan x="504" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#005f87">│</tspan>
+    <tspan x="512" textLength="24" lengthAdjust="spacingAndGlyphs" fill="#87afaf"> 27</tspan>
+    <tspan x="592" textLength="48" lengthAdjust="spacingAndGlyphs" fill="#ff5f5f">for _ </tspan>
+    <tspan x="640" textLength="16" lengthAdjust="spacingAndGlyphs" fill="#F1F5F9">in</tspan>
+    <tspan x="664" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#F1F5F9">1</tspan>
+    <tspan x="672" textLength="48" lengthAdjust="spacingAndGlyphs" fill="#ff5f5f">:steps</tspan>
+    <tspan x="1112" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#005f87">│</tspan>
   </text>
   <text y="269">
     <tspan x="0" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">│</tspan>
-    <tspan x="360" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">│</tspan>
-    <tspan x="368" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#005f87">│</tspan>
-    <tspan x="376" textLength="24" lengthAdjust="spacingAndGlyphs" fill="#87afaf"> 25</tspan>
-    <tspan x="424" textLength="392" lengthAdjust="spacingAndGlyphs" fill="#F1F5F9">        state = rk4_step(state, 1.0e-3)          </tspan>
-    <tspan x="824" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#005f87">│</tspan>
+    <tspan x="496" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">│</tspan>
+    <tspan x="504" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#005f87">│</tspan>
+    <tspan x="512" textLength="24" lengthAdjust="spacingAndGlyphs" fill="#87afaf"> 28</tspan>
+    <tspan x="560" textLength="544" lengthAdjust="spacingAndGlyphs" fill="#F1F5F9">        state = rk4_step(state, 1.0e-3)                             </tspan>
+    <tspan x="1112" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#005f87">│</tspan>
   </text>
   <text y="285">
     <tspan x="0" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">│</tspan>
-    <tspan x="360" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">│</tspan>
-    <tspan x="368" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#005f87">│</tspan>
-    <tspan x="376" textLength="24" lengthAdjust="spacingAndGlyphs" fill="#87afaf"> 26</tspan>
-    <tspan x="456" textLength="24" lengthAdjust="spacingAndGlyphs" fill="#800000">end</tspan>
-    <tspan x="824" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#005f87">│</tspan>
+    <tspan x="496" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">│</tspan>
+    <tspan x="504" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#005f87">│</tspan>
+    <tspan x="512" textLength="24" lengthAdjust="spacingAndGlyphs" fill="#87afaf"> 29</tspan>
+    <tspan x="592" textLength="24" lengthAdjust="spacingAndGlyphs" fill="#ff5f5f">end</tspan>
+    <tspan x="1112" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#005f87">│</tspan>
   </text>
   <text y="301">
     <tspan x="0" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">│</tspan>
-    <tspan x="360" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">│</tspan>
-    <tspan x="368" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#005f87">│</tspan>
-    <tspan x="376" textLength="24" lengthAdjust="spacingAndGlyphs" fill="#87afaf"> 27</tspan>
-    <tspan x="824" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#005f87">│</tspan>
+    <tspan x="496" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">│</tspan>
+    <tspan x="504" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#005f87">│</tspan>
+    <tspan x="512" textLength="24" lengthAdjust="spacingAndGlyphs" fill="#87afaf"> 30</tspan>
+    <tspan x="1112" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#005f87">│</tspan>
   </text>
   <text y="317">
     <tspan x="0" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">│</tspan>
-    <tspan x="360" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">│</tspan>
-    <tspan x="368" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#005f87">│</tspan>
-    <tspan x="376" textLength="24" lengthAdjust="spacingAndGlyphs" fill="#87afaf"> 28</tspan>
-    <tspan x="456" textLength="48" lengthAdjust="spacingAndGlyphs" fill="#800000">return</tspan>
-    <tspan x="504" textLength="312" lengthAdjust="spacingAndGlyphs" fill="#F1F5F9"> state                                 </tspan>
-    <tspan x="824" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#005f87">│</tspan>
+    <tspan x="496" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">│</tspan>
+    <tspan x="504" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#005f87">│</tspan>
+    <tspan x="512" textLength="24" lengthAdjust="spacingAndGlyphs" fill="#87afaf"> 31</tspan>
+    <tspan x="592" textLength="48" lengthAdjust="spacingAndGlyphs" fill="#ff5f5f">return</tspan>
+    <tspan x="640" textLength="464" lengthAdjust="spacingAndGlyphs" fill="#F1F5F9"> state                                                    </tspan>
+    <tspan x="1112" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#005f87">│</tspan>
   </text>
   <text y="333">
     <tspan x="0" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">│</tspan>
-    <tspan x="360" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">│</tspan>
-    <tspan x="368" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#005f87">│</tspan>
-    <tspan x="376" textLength="24" lengthAdjust="spacingAndGlyphs" fill="#87afaf"> 29</tspan>
-    <tspan x="424" textLength="24" lengthAdjust="spacingAndGlyphs" fill="#800000">end</tspan>
-    <tspan x="824" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#005f87">│</tspan>
+    <tspan x="496" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">│</tspan>
+    <tspan x="504" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#005f87">│</tspan>
+    <tspan x="512" textLength="24" lengthAdjust="spacingAndGlyphs" fill="#87afaf"> 32</tspan>
+    <tspan x="560" textLength="24" lengthAdjust="spacingAndGlyphs" fill="#ff5f5f">end</tspan>
+    <tspan x="1112" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#005f87">│</tspan>
   </text>
   <text y="349">
     <tspan x="0" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">│</tspan>
-    <tspan x="360" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">│</tspan>
-    <tspan x="368" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#005f87">│</tspan>
-    <tspan x="376" textLength="24" lengthAdjust="spacingAndGlyphs" fill="#87afaf"> 30</tspan>
-    <tspan x="824" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#005f87">│</tspan>
+    <tspan x="496" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">│</tspan>
+    <tspan x="504" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#005f87">│</tspan>
+    <tspan x="512" textLength="24" lengthAdjust="spacingAndGlyphs" fill="#87afaf"> 33</tspan>
+    <tspan x="1104" textLength="16" lengthAdjust="spacingAndGlyphs" fill="#005f87">││</tspan>
   </text>
   <text y="365">
     <tspan x="0" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">│</tspan>
-    <tspan x="360" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">│</tspan>
-    <tspan x="368" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#005f87">│</tspan>
-    <tspan x="376" textLength="24" lengthAdjust="spacingAndGlyphs" fill="#87afaf"> 31</tspan>
-    <tspan x="424" textLength="392" lengthAdjust="spacingAndGlyphs" fill="#F1F5F9">rk4_step(x, h) = x + h * (dynamics(x) + 2dynamics</tspan>
-    <tspan x="816" textLength="16" lengthAdjust="spacingAndGlyphs" fill="#005f87">││</tspan>
+    <tspan x="496" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">│</tspan>
+    <tspan x="504" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#005f87">│</tspan>
+    <tspan x="512" textLength="24" lengthAdjust="spacingAndGlyphs" fill="#87afaf"> 34</tspan>
+    <tspan x="560" textLength="544" lengthAdjust="spacingAndGlyphs" fill="#F1F5F9">rk4_step(x, h) = x + h * (dynamics(x) + 2dynamics(x + h / 2) + dynam</tspan>
+    <tspan x="1104" textLength="16" lengthAdjust="spacingAndGlyphs" fill="#005f87">││</tspan>
   </text>
   <text y="381">
     <tspan x="0" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">│</tspan>
-    <tspan x="360" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">│</tspan>
-    <tspan x="368" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#005f87">│</tspan>
-    <tspan x="376" textLength="24" lengthAdjust="spacingAndGlyphs" fill="#87afaf"> 32</tspan>
-    <tspan x="816" textLength="16" lengthAdjust="spacingAndGlyphs" fill="#005f87">││</tspan>
+    <tspan x="496" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">│</tspan>
+    <tspan x="504" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#005f87">│</tspan>
+    <tspan x="512" textLength="24" lengthAdjust="spacingAndGlyphs" fill="#87afaf"> 35</tspan>
+    <tspan x="1104" textLength="16" lengthAdjust="spacingAndGlyphs" fill="#005f87">││</tspan>
   </text>
   <text y="397">
     <tspan x="0" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">│</tspan>
-    <tspan x="360" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">│</tspan>
-    <tspan x="368" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#005f87">│</tspan>
-    <tspan x="376" textLength="24" lengthAdjust="spacingAndGlyphs" fill="#87afaf"> 33</tspan>
-    <tspan x="424" textLength="392" lengthAdjust="spacingAndGlyphs" fill="#F1F5F9">dynamics(x) = -9.81 * sin(x) + perturbation(x)   </tspan>
-    <tspan x="816" textLength="16" lengthAdjust="spacingAndGlyphs" fill="#005f87">││</tspan>
+    <tspan x="496" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">│</tspan>
+    <tspan x="504" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#005f87">│</tspan>
+    <tspan x="512" textLength="24" lengthAdjust="spacingAndGlyphs" fill="#87afaf"> 36</tspan>
+    <tspan x="560" textLength="544" lengthAdjust="spacingAndGlyphs" fill="#F1F5F9">dynamics(x) = -9.81 * sin(x) + perturbation(x)                      </tspan>
+    <tspan x="1104" textLength="16" lengthAdjust="spacingAndGlyphs" fill="#005f87">││</tspan>
   </text>
   <text y="413">
     <tspan x="0" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">│</tspan>
-    <tspan x="360" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">│</tspan>
-    <tspan x="368" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#005f87">│</tspan>
-    <tspan x="376" textLength="24" lengthAdjust="spacingAndGlyphs" fill="#87afaf"> 34</tspan>
-    <tspan x="816" textLength="16" lengthAdjust="spacingAndGlyphs" fill="#005f87">││</tspan>
+    <tspan x="496" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">│</tspan>
+    <tspan x="504" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#005f87">│</tspan>
+    <tspan x="512" textLength="24" lengthAdjust="spacingAndGlyphs" fill="#87afaf"> 37</tspan>
+    <tspan x="1104" textLength="16" lengthAdjust="spacingAndGlyphs" fill="#005f87">││</tspan>
   </text>
   <text y="429">
     <tspan x="0" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">│</tspan>
-    <tspan x="360" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">│</tspan>
-    <tspan x="368" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#005f87">│</tspan>
-    <tspan x="376" textLength="24" lengthAdjust="spacingAndGlyphs" fill="#87afaf"> 35</tspan>
-    <tspan x="424" textLength="392" lengthAdjust="spacingAndGlyphs" fill="#F1F5F9">perturbation(x) = 1.0e-3 * cos(35x)              </tspan>
-    <tspan x="816" textLength="16" lengthAdjust="spacingAndGlyphs" fill="#005f87">││</tspan>
+    <tspan x="496" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">│</tspan>
+    <tspan x="504" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#005f87">│</tspan>
+    <tspan x="512" textLength="24" lengthAdjust="spacingAndGlyphs" fill="#87afaf"> 38</tspan>
+    <tspan x="560" textLength="544" lengthAdjust="spacingAndGlyphs" fill="#F1F5F9">perturbation(x) = 1.0e-3 * cos(35x)                                 </tspan>
+    <tspan x="1104" textLength="16" lengthAdjust="spacingAndGlyphs" fill="#005f87">││</tspan>
   </text>
   <text y="445">
     <tspan x="0" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">│</tspan>
-    <tspan x="360" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">│</tspan>
-    <tspan x="368" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#005f87">│</tspan>
-    <tspan x="376" textLength="24" lengthAdjust="spacingAndGlyphs" fill="#87afaf"> 36</tspan>
-    <tspan x="816" textLength="16" lengthAdjust="spacingAndGlyphs" fill="#005f87">││</tspan>
+    <tspan x="496" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">│</tspan>
+    <tspan x="504" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#005f87">│</tspan>
+    <tspan x="512" textLength="24" lengthAdjust="spacingAndGlyphs" fill="#87afaf"> 39</tspan>
+    <tspan x="1104" textLength="16" lengthAdjust="spacingAndGlyphs" fill="#005f87">││</tspan>
   </text>
   <text y="461">
-    <tspan x="0" textLength="368" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">╰────────────────────────────────────────────╯</tspan>
-    <tspan x="368" textLength="464" lengthAdjust="spacingAndGlyphs" fill="#005f87">╰────────────────────────────────────────────────────────╯</tspan>
+    <tspan x="0" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">│</tspan>
+    <tspan x="496" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">│</tspan>
+    <tspan x="504" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#005f87">│</tspan>
+    <tspan x="512" textLength="24" lengthAdjust="spacingAndGlyphs" fill="#87afaf"> 40</tspan>
+    <tspan x="560" textLength="64" lengthAdjust="spacingAndGlyphs" fill="#ff5f5f">function</tspan>
+    <tspan x="624" textLength="480" lengthAdjust="spacingAndGlyphs" fill="#F1F5F9"> estimate_residuals(states)                                 </tspan>
+    <tspan x="1104" textLength="16" lengthAdjust="spacingAndGlyphs" fill="#005f87">││</tspan>
   </text>
   <text y="477">
+    <tspan x="0" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">│</tspan>
+    <tspan x="496" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">│</tspan>
+    <tspan x="504" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#005f87">│</tspan>
+    <tspan x="512" textLength="24" lengthAdjust="spacingAndGlyphs" fill="#87afaf"> 41</tspan>
+    <tspan x="592" textLength="48" lengthAdjust="spacingAndGlyphs" fill="#ff5f5f">return</tspan>
+    <tspan x="640" textLength="464" lengthAdjust="spacingAndGlyphs" fill="#F1F5F9"> abs.(states .- mean_state(states))                       </tspan>
+    <tspan x="1104" textLength="16" lengthAdjust="spacingAndGlyphs" fill="#005f87">││</tspan>
+  </text>
+  <text y="493">
+    <tspan x="0" textLength="504" lengthAdjust="spacingAndGlyphs" fill="#ffaf00">╰─────────────────────────────────────────────────────────────╯</tspan>
+    <tspan x="504" textLength="616" lengthAdjust="spacingAndGlyphs" fill="#005f87">╰───────────────────────────────────────────────────────────────────────────╯</tspan>
+  </text>
+  <text y="509">
     <tspan x="8" textLength="16" lengthAdjust="spacingAndGlyphs" fill="#ffaf00" font-weight="bold" stroke="#ffaf00" stroke-width="0.4">↑↓</tspan>
     <tspan x="24" textLength="56" lengthAdjust="spacingAndGlyphs" fill="#87afaf"> move  </tspan>
     <tspan x="80" textLength="24" lengthAdjust="spacingAndGlyphs" fill="#ffaf00" font-weight="bold" stroke="#ffaf00" stroke-width="0.4">⏎/→</tspan>
@@ -388,15 +460,34 @@ text{font-family:'MesloLGS NF','MesloLGM NF','JetBrains Mono','Menlo','DejaVu Sa
     <tspan x="576" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#ffaf00" font-weight="bold" stroke="#ffaf00" stroke-width="0.4">?</tspan>
     <tspan x="584" textLength="56" lengthAdjust="spacingAndGlyphs" fill="#87afaf"> help  </tspan>
     <tspan x="640" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#ffaf00" font-weight="bold" stroke="#ffaf00" stroke-width="0.4">q</tspan>
-    <tspan x="648" textLength="184" lengthAdjust="spacingAndGlyphs" fill="#87afaf"> quit  all samples ▸ ev</tspan>
+    <tspan x="648" textLength="472" lengthAdjust="spacingAndGlyphs" fill="#87afaf"> quit                  all samples ▸ eval ▸ run_simulation </tspan>
   </text>
-  <rect x="816" y="224" width="8" height="16" fill="#ffaf00"/>
-  <rect x="816" y="240" width="8" height="16" fill="#ffaf00"/>
-  <rect x="816" y="256" width="8" height="16" fill="#ffaf00"/>
-  <rect x="816" y="272" width="8" height="16" fill="#ffaf00"/>
-  <rect x="816" y="288" width="8" height="16" fill="#ffaf00"/>
-  <rect x="816" y="304" width="8" height="16" fill="#ffaf00"/>
-  <rect x="816" y="320" width="8" height="16" fill="#ffaf00"/>
-  <rect x="816" y="336" width="8" height="16" fill="#ffaf00"/>
+  <rect x="296" y="96" width="8" height="16" fill="#ff5f5f"/>
+  <rect x="304" y="96" width="8" height="16" fill="#ff5f5f"/>
+  <rect x="312" y="96" width="8" height="16" fill="#ff5f5f"/>
+  <rect x="320" y="96" width="8" height="16" fill="#ff5f5f"/>
+  <rect x="328" y="96" width="8" height="16" fill="#ff5f5f"/>
+  <rect x="336" y="96" width="8" height="16" fill="#ff5f5f"/>
+  <rect x="344" y="96" width="8" height="16" fill="#ff5f5f"/>
+  <rect x="352" y="96" width="7" height="16" fill="#ff5f5f"/>
+  <rect x="296" y="112" width="8" height="16" fill="#ffd700"/>
+  <rect x="304" y="112" width="8" height="16" fill="#ffd700"/>
+  <rect x="312" y="112" width="8" height="16" fill="#ffd700"/>
+  <rect x="320" y="112" width="8" height="16" fill="#ffd700"/>
+  <rect x="328" y="112" width="1" height="16" fill="#ffd700"/>
+  <rect x="296" y="128" width="8" height="16" fill="#5fd787"/>
+  <rect x="304" y="128" width="4" height="16" fill="#5fd787"/>
+  <rect x="296" y="144" width="6" height="16" fill="#5fd787"/>
+  <rect x="296" y="160" width="4" height="16" fill="#5fd787"/>
+  <rect x="296" y="176" width="4" height="16" fill="#5fd787"/>
+  <rect x="296" y="192" width="2" height="16" fill="#5fd787"/>
+  <rect x="296" y="208" width="2" height="16" fill="#5fd787"/>
+  <rect x="1104" y="224" width="8" height="16" fill="#ffaf00"/>
+  <rect x="1104" y="240" width="8" height="16" fill="#ffaf00"/>
+  <rect x="1104" y="256" width="8" height="16" fill="#ffaf00"/>
+  <rect x="1104" y="272" width="8" height="16" fill="#ffaf00"/>
+  <rect x="1104" y="288" width="8" height="16" fill="#ffaf00"/>
+  <rect x="1104" y="304" width="8" height="16" fill="#ffaf00"/>
+  <rect x="1104" y="320" width="8" height="16" fill="#ffaf00"/>
 </g>
 </svg>
