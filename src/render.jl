@@ -27,7 +27,7 @@ const HELP_ENTRIES = (
     (:inspect, "Tab, 1 / 2",  "Focus the code / call-site pane"),
     (:inspect, "t",           "Toggle source / typed IR"),
     (:inspect, "q / Esc",     "Close the inspector"),
-    (:general, "+ / -",       "Maximize / restore the focused panel"),
+    (:general, "+ / -",       "Grow / shrink the focused panel"),
     (:general, "?",           "Toggle this help dialog"),
 )
 
@@ -253,11 +253,12 @@ end
     render_main!(m::ProfileViewer, buf::Buffer, rect::Rect) -> Nothing
 
 Render the main view into `buf` inside `rect`: the frame list on the left and the source
-panel of the selected row on the right. When the zoom is active, only the focused panel
-renders, filling the whole `rect`.
+panel of the selected row on the right. Each zoom step moves the split toward the zoomed
+panel, regardless of the focus; at the last step only the focused panel renders, filling
+the whole `rect`.
 """
 function render_main!(m::ProfileViewer, buf::Buffer, rect::Rect)
-    if m.zoom
+    if m.zoom >= ZOOM_MAX
         if m.tree_focus === :list
             render_tree!(m, buf, rect; focused = true)
         else
@@ -267,7 +268,9 @@ function render_main!(m::ProfileViewer, buf::Buffer, rect::Rect)
         return nothing
     end
 
-    cols = split_layout(Layout(Horizontal, [Percent(45), Fill()]), rect)
+    # Each intermediate zoom step moves the split by 15% toward the zoomed panel.
+    list_pct = 45 + 15 * (m.zoom_panel === :list ? m.zoom : -m.zoom)
+    cols = split_layout(Layout(Horizontal, [Percent(list_pct), Fill()]), rect)
     (length(cols) < 2) && return nothing
 
     render_tree!(m, buf, cols[1]; focused = m.tree_focus === :list)

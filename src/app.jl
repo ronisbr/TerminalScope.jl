@@ -22,6 +22,14 @@ struct CompileStats
 end
 
 """
+    ZOOM_MAX
+
+Number of zoom steps of the focused panel: `+` and `-` move the split one step at a time
+from `0` (default split) to `ZOOM_MAX` (maximized, hiding the other panel).
+"""
+const ZOOM_MAX = 3
+
+"""
     mutable struct ProfileViewer <: Model
 
 Store the state of the interactive profile viewer application.
@@ -63,8 +71,11 @@ Store the state of the interactive profile viewer application.
     completed background tasks to trigger a redraw, or `nothing` outside the loop.
 - `tree_focus::Symbol`: Panel of the main view receiving the scroll keys, either `:list`
     or `:code`.
-- `zoom::Bool`: Whether the focused panel of the active view is maximized, hiding the
-    other panel.
+- `zoom::Int`: Zoom step of the active view, from `0` (default split) to
+    [`ZOOM_MAX`](@ref) (maximized, hiding the other panel).
+- `zoom_panel::Symbol`: Panel the zoom favors, anchored when a zoom step is applied and
+    unaffected by later focus changes. In the maximized mode, the fullscreen panel
+    follows the focus instead (see [`zoom!`](@ref)).
 """
 mutable struct ProfileViewer <: Model
     root::PVNode
@@ -89,7 +100,8 @@ mutable struct ProfileViewer <: Model
     tasks::Any
     wake::Base.RefValue{Any}
     tree_focus::Symbol
-    zoom::Bool
+    zoom::Int
+    zoom_panel::Symbol
 end
 
 """
@@ -168,7 +180,8 @@ function _viewer(
         nothing,
         Base.RefValue{Any}(nothing),
         :list,
-        false
+        0,
+        :list
     )
 
     m.tasks = Tachikoma.TaskQueue(;
@@ -407,12 +420,40 @@ function inspect_selected!(m::ProfileViewer)
 end
 
 """
+    zoom!(m::ProfileViewer, focus::Symbol, other::Symbol, delta::Int) -> Nothing
+
+Apply one zoom step to the panel `focus` of the active view, growing it when `delta` is
+`+1` and shrinking it when `delta` is `-1`, mutating `m.zoom` and `m.zoom_panel`. The
+split stays anchored to `m.zoom_panel` afterwards, so later focus changes do not move
+it: stepping from the default split anchors the zoom on the panel the step favors
+(`focus` when growing, `other` when shrinking), and stepping against the anchored panel
+walks the split back toward the default, re-anchoring once it is crossed. Shrinking the
+focused panel stops at its minimum size: the maximized mode is only reachable by growing
+the focused panel itself. In the maximized mode, the fullscreen panel follows the focus,
+so the zoom re-anchors on `focus` before stepping.
+"""
+function zoom!(m::ProfileViewer, focus::Symbol, other::Symbol, delta::Int)
+    (m.zoom == ZOOM_MAX) && (m.zoom_panel = focus)
+
+    if m.zoom == 0
+        m.zoom_panel = delta > 0 ? focus : other
+        m.zoom = 1
+    else
+        limit = focus === m.zoom_panel ? ZOOM_MAX : ZOOM_MAX - 1
+        m.zoom = clamp(m.zoom + (focus === m.zoom_panel ? delta : -delta), 0, limit)
+    end
+
+    return nothing
+end
+
+"""
     _update_tree!(m::ProfileViewer, evt::KeyEvent) -> Nothing
 
 Process the keyboard event `evt` for the main view, mutating the model `m`. The panel
 focused with the Tab or number keys receives the movement keys: the frame list navigates
-the tree, and the source panel scrolls the code. `+` maximizes the focused panel and `-`
-restores the split.
+the tree, and the source panel scrolls the code. `+` and `-` grow and shrink the focused
+panel one step at a time, up to maximizing it (see [`zoom!`](@ref)), and Esc restores
+the default split.
 """
 function _update_tree!(m::ProfileViewer, evt::KeyEvent)
     is_char(c::Char) = (evt.key == :char) && (evt.char == c)
@@ -430,13 +471,13 @@ function _update_tree!(m::ProfileViewer, evt::KeyEvent)
         m.tree_focus = :code
 
     elseif is_char('+')
-        m.zoom = true
+        zoom!(m, m.tree_focus, on_list ? :code : :list, +1)
 
     elseif is_char('-')
-        m.zoom = false
+        zoom!(m, m.tree_focus, on_list ? :code : :list, -1)
 
     elseif evt.key == :escape
-        m.zoom = false
+        m.zoom = 0
 
     elseif is_char('i')
         inspect_selected!(m)
@@ -554,10 +595,10 @@ function _update_inspect!(m::ProfileViewer, evt::KeyEvent)
         st.focus = :calls
 
     elseif is_char('+')
-        m.zoom = true
+        zoom!(m, st.focus, on_calls ? :code : :calls, +1)
 
     elseif is_char('-')
-        m.zoom = false
+        zoom!(m, st.focus, on_calls ? :code : :calls, -1)
 
     elseif evt.key == :up
         move!(-1)

@@ -67,14 +67,16 @@ PrecompileTools.@setup_workload begin
         update!(m, KeyEvent(:backspace))
         view(m, frame)
 
-        # Source panel: focus switching, scrolling, and the zoom toggle.
+        # Source panel: focus switching, scrolling, and the zoom steps.
         update!(m, KeyEvent(:down))
         update!(m, KeyEvent(:tab))
         view(m, frame)
         update!(m, KeyEvent(:down))
         update!(m, KeyEvent(:char, '+'))
         view(m, frame)
-        update!(m, KeyEvent(:char, '-'))
+        foreach(_ -> update!(m, KeyEvent(:char, '+')), 1:(ZOOM_MAX - 1))
+        view(m, frame)
+        update!(m, KeyEvent(:escape))
         update!(m, KeyEvent(:char, '1'))
 
         # Help dialog.

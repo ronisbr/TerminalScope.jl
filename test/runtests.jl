@@ -307,14 +307,38 @@ end
     update!(m, KeyEvent(:char, '1'))
     @test m.tree_focus === :list
 
-    # + maximizes the focused panel; - and Esc restore the split.
+    # + and - move the zoom one step at a time, anchored to the zoomed panel; Esc
+    # restores the default split.
     update!(m, KeyEvent(:char, '+'))
-    @test m.zoom
+    @test (m.zoom, m.zoom_panel) == (1, :list)
     update!(m, KeyEvent(:char, '-'))
-    @test !m.zoom
+    @test m.zoom == 0
+
+    # Shrinking at the default split zooms the other panel, and growing the focused
+    # panel walks the split back toward the default.
+    update!(m, KeyEvent(:char, '-'))
+    @test (m.zoom, m.zoom_panel) == (1, :code)
     update!(m, KeyEvent(:char, '+'))
+    @test m.zoom == 0
+
+    # Repeated - keeps the focused panel at its minimum size instead of hiding it.
+    foreach(_ -> update!(m, KeyEvent(:char, '-')), 1:(TS.ZOOM_MAX + 2))
+    @test (m.zoom, m.zoom_panel) == (TS.ZOOM_MAX - 1, :code)
     update!(m, KeyEvent(:escape))
-    @test !m.zoom
+
+    foreach(_ -> update!(m, KeyEvent(:char, '+')), 1:(TS.ZOOM_MAX + 1))
+    @test (m.zoom, m.zoom_panel) == (TS.ZOOM_MAX, :list)
+
+    # The anchored split does not follow the focus below the maximized mode, while the
+    # maximized mode re-anchors the zoom on the focused panel when stepping.
+    update!(m, KeyEvent(:char, '2'))
+    @test (m.zoom, m.zoom_panel) == (TS.ZOOM_MAX, :list)
+    update!(m, KeyEvent(:char, '-'))
+    @test (m.zoom, m.zoom_panel) == (TS.ZOOM_MAX - 1, :code)
+    update!(m, KeyEvent(:char, '1'))
+    @test (m.zoom, m.zoom_panel) == (TS.ZOOM_MAX - 1, :code)
+    update!(m, KeyEvent(:escape))
+    @test m.zoom == 0
 
     # With the source panel focused, the movement keys scroll the code.
     update!(m, KeyEvent(:char, '2'))
@@ -549,8 +573,27 @@ end
     @test find_text(tb, "[2] runtests.jl") !== nothing
     @test find_text(tb, "Samples") !== nothing
 
-    # Zoom: + maximizes the focused panel, - restores the split.
+    # Zoom: each + grows the focused panel one step, maximizing it at the last step, and
+    # Esc restores the default split.
+    pos0 = find_text(tb, "[2] runtests.jl")
     update!(m, KeyEvent(:char, '+'))
+    Tachikoma.reset!(tb.buf)
+    tview(m, frame)
+    @test find_text(tb, "[1] Frames") !== nothing
+    pos1 = find_text(tb, "[2] runtests.jl")
+    @test pos1 !== nothing
+    @test pos1.x > pos0.x
+
+    # Changing the focus must not move the anchored split.
+    update!(m, KeyEvent(:char, '2'))
+    Tachikoma.reset!(tb.buf)
+    tview(m, frame)
+    pos2 = find_text(tb, "[2] runtests.jl")
+    @test pos2 !== nothing
+    @test pos2.x == pos1.x
+    update!(m, KeyEvent(:char, '1'))
+
+    foreach(_ -> update!(m, KeyEvent(:char, '+')), 1:(TS.ZOOM_MAX - 1))
     Tachikoma.reset!(tb.buf)
     tview(m, frame)
     @test find_text(tb, "[1] Frames") !== nothing
@@ -560,7 +603,7 @@ end
     tview(m, frame)
     @test find_text(tb, "[1] Frames") === nothing
     @test find_text(tb, "[2] runtests.jl") !== nothing
-    update!(m, KeyEvent(:char, '-'))
+    update!(m, KeyEvent(:escape))
     update!(m, KeyEvent(:char, '1'))
 
     # Help dialog.

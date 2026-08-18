@@ -686,13 +686,22 @@ function render_inspect!(m, buf::Buffer, rect::Rect)
     fr = inspect_top(st)
     fr === nothing && return nothing
 
-    # When the zoom is active, the focused pane fills the whole view; otherwise the
-    # call-site list gets the rows it needs, capped at half of the view.
-    rows = if m.zoom
+    # At the last zoom step the focused pane fills the whole view; otherwise the
+    # call-site list gets the rows it needs, capped at half of the view, and each
+    # intermediate zoom step moves the split toward the zoomed pane, regardless of the
+    # focus.
+    rows = if m.zoom >= ZOOM_MAX
         st.focus === :code ? [rect, Rect(rect.x, rect.y, 0, 0)] :
             [Rect(rect.x, rect.y, 0, 0), rect]
     else
         calls_want = clamp(length(fr.entries) + 3, 5, max(rect.height ÷ 2, 5))
+
+        if m.zoom_panel === :calls
+            calls_want += round(Int, m.zoom * (rect.height - calls_want) / ZOOM_MAX)
+        else
+            calls_want -= round(Int, m.zoom * (calls_want - 3) / ZOOM_MAX)
+        end
+
         split_layout(Layout(Vertical, [Fill(), Fixed(calls_want)]), rect)
     end
 
