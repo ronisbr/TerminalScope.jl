@@ -13,6 +13,7 @@ using Tachikoma
 using TerminalScope
 
 import Cthulhu
+import Preferences
 import SnoopCompile
 import SnoopCompileCore
 
@@ -1182,6 +1183,40 @@ end
     @test TS.DEFAULT_THEME[] == :light
     TS.theme!(:dark)
     @test TS.DEFAULT_THEME[] == :dark
+
+    # Color preference parsing: xterm-256 codes and quantized hex strings.
+    @test TS._color_code(214) == 214
+    @test TS._color_code(0) == 0
+    @test TS._color_code(-1) === nothing
+    @test TS._color_code(256) === nothing
+    @test TS._color_code("#F59E0B") == Int(Tachikoma.hex_to_color256(0xF59E0B).code)
+    @test TS._color_code("F59E0B") == TS._color_code("#F59E0B")
+    @test TS._color_code("#F59") === nothing
+    @test TS._color_code("not a color") === nothing
+    @test TS._color_code(1.5) === nothing
+
+    # Theme building honors the color preferences of the active project.
+    @test TS._build_theme(:dark).bg == Tachikoma.Color256(234)
+    @test_logs (:info,) TS.set_theme_color!(:dark, :bg, 17)
+    @test TS._build_theme(:dark).bg == Tachikoma.Color256(17)
+    @test_logs (:info,) TS.set_theme_color!(:light, :accent, "#F59E0B")
+    @test TS._build_theme(:light).accent ==
+        Tachikoma.Color256(TS._color_code("#F59E0B"))
+    @test_logs (:info,) TS.reset_theme_colors!()
+    @test TS._build_theme(:dark).bg == Tachikoma.Color256(234)
+    @test TS._build_theme(:light).accent == Tachikoma.Color256(172)
+
+    # An invalid stored preference falls back to the default with a warning.
+    Preferences.set_preferences!(TS, "dark_bg" => "oops"; force = true)
+    theme = @test_logs (:warn,) TS._build_theme(:dark)
+    @test theme.bg == Tachikoma.Color256(234)
+    Preferences.delete_preferences!(TS, "dark_bg"; force = true)
+
+    # Setter validation.
+    @test_throws ArgumentError TS.set_theme_color!(:solarized, :bg, 0)
+    @test_throws ArgumentError TS.set_theme_color!(:dark, :bgcolor, 0)
+    @test_throws ArgumentError TS.set_theme_color!(:dark, :bg, 999)
+    @test_throws ArgumentError TS.set_theme_color!(:dark, :bg, "#XYZ")
 end
 
 @testset "Real Profile Integration" begin
