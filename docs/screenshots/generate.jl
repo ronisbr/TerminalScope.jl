@@ -354,9 +354,10 @@ function render_png(m, name::String; theme::Symbol = :dark)
     # defaults are legible on white.
     cells = theme === :dark ? _brighten_ansi(tb.buf.content) : copy(tb.buf.content)
 
-    # The background and default foreground use the design-intent SatelliteAnalysis
-    # colors instead of their xterm-256 quantization, so the pages look crisp.
-    bg = theme === :dark ? _rgb(0x0A, 0x19, 0x29) : _rgb(0xFF, 0xFF, 0xFF)
+    # The dark background is almost black with a subtle cool tint, composing with the
+    # navy-and-amber theme without reading as blue; the default foreground uses the
+    # design-intent SatelliteAnalysis text color.
+    bg = theme === :dark ? _rgb(0x0D, 0x11, 0x17) : _rgb(0xFF, 0xFF, 0xFF)
     fg = theme === :dark ? Tachikoma.ColorRGB(0xF1, 0xF5, 0xF9) :
         Tachikoma.ColorRGB(0x0A, 0x19, 0x29)
 
