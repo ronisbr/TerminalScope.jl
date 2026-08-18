@@ -10,8 +10,13 @@
 [![License](https://img.shields.io/github/license/ronisbr/TerminalScope.jl?style=flat-square&logo=readme&logoColor=white&labelColor=475569&color=0284C7)](https://github.com/ronisbr/TerminalScope.jl/blob/main/LICENSE.txt)
 
 The **TerminalScope.jl** provides an interactive terminal user interface (TUI) to
-diagnose the performance of Julia code. It bundles four analyses under one macro and one
-consistent drill-down interface:
+diagnose the performance of Julia code.
+
+<p align="center">
+  <img src="./docs/src/assets/screenshots/runtime_profile.svg" width="100%" title="Runtime profile viewer">
+</p>
+
+It bundles four analyses under one macro and one consistent drill-down interface:
 
 - **Runtime profile**: where the time is spent, from the sampling profiler;
 - **Allocation profile**: where the memory is allocated, including what was allocated;

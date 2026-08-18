@@ -31,12 +31,15 @@ scope_descend(f, Tuple{Int, Float64})
 
 ## The Viewer
 
-The top pane shows the **annotated source** of the inspected method: the inferred types
-are attached to the expressions whose type is not concrete, colored by stability:
+![Type inspector](../assets/screenshots/type_inspector.svg)
 
-- **Red**: An abstract type — the classic type instability;
-- **Yellow**: A small `Union`, which Julia usually handles well;
-- **Cyan**: A concrete (stable) type.
+The top pane shows the **annotated source** of the inspected method: the inferred types
+are attached to the expressions whose type is not concrete, colored by stability using
+the theme colors (which adapt to the light variant):
+
+- **Error color (coral)**: An abstract type — the classic type instability;
+- **Warning color (gold)**: A small `Union`, which Julia usually handles well;
+- **Primary color (cyan)**: A concrete (stable) type.
 
 The `t` key toggles the pane to the **typed IR** (the `@code_warntype`-like view), which
 is also used automatically when the source cannot be mapped (e.g. generated functions).

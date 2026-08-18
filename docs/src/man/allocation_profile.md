@@ -33,6 +33,8 @@ The following options are available:
 
 ## The Viewer
 
+![Allocation profile viewer](../assets/screenshots/allocation_profile.svg)
+
 The tree is ranked by **allocated bytes** and the header shows the totals of both units.
 Pressing `u` re-ranks the whole tree by **allocation counts** (and back), recomputing
 every percentage and cost bar, so both the "few huge buffers" and the "many small

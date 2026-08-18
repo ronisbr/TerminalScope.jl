@@ -30,6 +30,8 @@ is organized into trees by `SnoopCompile.invalidation_trees`.
 
 ## The Viewer
 
+![Invalidations viewer](../assets/screenshots/invalidations.svg)
+
 The first level lists the **triggers** — one row per event that invalidated compiled
 code — sorted by the number of invalidated method instances:
 
