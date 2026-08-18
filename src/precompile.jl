@@ -47,6 +47,15 @@ PrecompileTools.@setup_workload begin
             Tachikoma.PixelSnapshot[]
         )
 
+        # Live-application event path: the app loop delivers every key through
+        # `Tachikoma.dispatch_event!` (default bindings, then `update!`), whose
+        # specialization on `ProfileViewer` otherwise compiles on the first key press of
+        # the session (~0.5 s of latency).
+        _pc_term = Tachikoma.Terminal(; io = IOBuffer(), size = (cols = 100, rows = 30))
+        _pc_overlay = Tachikoma.AppOverlay()
+        Tachikoma.dispatch_event!(_pc_term, _pc_overlay, m, KeyEvent(:down), true)
+        Tachikoma.dispatch_event!(_pc_term, _pc_overlay, m, KeyEvent(:up), true)
+
         # Frame list: render, cursor movement, drill-down, and paging.
         view(m, frame)
         update!(m, KeyEvent(:down))
