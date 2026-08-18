@@ -5,6 +5,7 @@
 # TerminalScope.jl
 
 [![CI](https://img.shields.io/github/actions/workflow/status/ronisbr/TerminalScope.jl/ci.yml?style=flat-square&logo=githubactions&logoColor=white&labelColor=475569&label=CI)](https://github.com/ronisbr/TerminalScope.jl/actions/workflows/ci.yml)
+[![Coverage](https://img.shields.io/codecov/c/github/ronisbr/TerminalScope.jl?style=flat-square&logo=codecov&logoColor=white&labelColor=475569&label=Coverage)](https://codecov.io/gh/ronisbr/TerminalScope.jl)
 [![docs-stable](https://img.shields.io/badge/docs-stable-16A34A?style=flat-square&logo=gitbook&logoColor=white&labelColor=475569)][docs-stable-url]
 [![docs-dev](https://img.shields.io/badge/docs-dev-D97706?style=flat-square&logo=gitbook&logoColor=white&labelColor=475569)][docs-dev-url]
 [![License](https://img.shields.io/github/license/ronisbr/TerminalScope.jl?style=flat-square&logo=readme&logoColor=white&labelColor=475569&color=0284C7)](https://github.com/ronisbr/TerminalScope.jl/blob/main/LICENSE.txt)
