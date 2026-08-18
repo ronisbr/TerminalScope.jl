@@ -124,12 +124,13 @@ InspectState() =
     type_stability_style(rt) -> Style
 
 Return the style of the inferred type `rt` following the Cthulhu conventions: red for
-abstract types, yellow for small `Union`s, and cyan for concrete (stable) types.
+abstract types, the theme warning gold for small `Union`s, and cyan for concrete
+(stable) types.
 """
 function type_stability_style(@nospecialize(rt))
     (rt isa Type) || return Style(; fg = CYAN.c400)
     TypedSyntax.is_type_unstable(rt) || return Style(; fg = CYAN.c400)
-    TypedSyntax.is_small_union_or_tunion(rt) && return Style(; fg = YELLOW.c400, bold = true)
+    TypedSyntax.is_small_union_or_tunion(rt) && return tstyle(:warning, bold = true)
     return Style(; fg = RED.c400, bold = true)
 end
 
@@ -575,7 +576,7 @@ function render_inspect_header!(m, buf::Buffer, rect::Rect)
         title_style = tstyle(:title, bold = true),
         title_right = " TerminalScope.jl ",
         title_right_style = tstyle(:text_dim),
-        border_style = tstyle(:border_focus),
+        border_style = tstyle(:border),
         box = BOX_ROUNDED
     )
     inner = render(block, rect, buf)
@@ -614,7 +615,7 @@ function render_inspect_header!(m, buf::Buffer, rect::Rect)
             x,
             y,
             string(n_unstable, " / ", length(fr.entries)),
-            n_unstable > 0 ? Style(; fg = YELLOW.c400, bold = true) : tstyle(:success);
+            n_unstable > 0 ? tstyle(:warning, bold = true) : tstyle(:success);
             max_x = mx
         )
     end

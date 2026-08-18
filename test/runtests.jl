@@ -622,7 +622,7 @@ end
 
     # Stability classification: concrete, small union, and abstract types.
     @test TS.type_stability_style(Int).fg == Tachikoma.CYAN.c400
-    @test TS.type_stability_style(Union{Int, Float64}).fg == Tachikoma.YELLOW.c400
+    @test TS.type_stability_style(Union{Int, Float64}).fg == TS.tstyle(:warning).fg
     @test TS.type_stability_style(Any).fg == Tachikoma.RED.c400
 
     # Standalone inspector on a type-unstable call chain.

@@ -99,7 +99,7 @@ function render_header!(m::ProfileViewer, buf::Buffer, rect::Rect)
         title_style = tstyle(:title, bold = true),
         title_right = " TerminalScope.jl ",
         title_right_style = tstyle(:text_dim),
-        border_style = tstyle(:border_focus),
+        border_style = tstyle(:border),
         box = BOX_ROUNDED
     )
     inner = render(block, rect, buf)
@@ -584,7 +584,7 @@ function render_status!(m::ProfileViewer, buf::Buffer, rect::Rect)
     end
 
     right_spans = if !isempty(m.notice)
-        Span[Span(m.notice * " ", tstyle(:warning, bold = true))]
+        Span[Span(m.notice * " ", tstyle(:accent, bold = true))]
     else
         crumb_str = m.mode == :inspect ? inspect_breadcrumb(m.inspect) :
             breadcrumb(m.current)
