@@ -452,7 +452,12 @@ plain function name, anonymous functions (`"#37"`) are prefixed with `λ`, and `
 quoting is stripped. Any other name is returned unchanged.
 """
 function demangle_name(name::AbstractString)
-    startswith(name, "var\"") && endswith(name, "\"") && (name = name[5:prevind(name, lastindex(name))])
+    if startswith(name, "var\"") && endswith(name, "\"")
+        name = name[5:prevind(name, lastindex(name))]
+    end
+
+    # Every mangling pattern below contains a `#`, so plain names skip the regexes.
+    occursin('#', name) || return String(name)
 
     m = match(r"^#([^#]+)#\d+$", name)
     (m !== nothing) && !all(isdigit, m.captures[1]) && return String(m.captures[1])
@@ -467,17 +472,18 @@ function demangle_name(name::AbstractString)
 end
 
 """
-    _demangled_sf(sf::StackFrame) -> StackFrame
+    _demangled_sf(sf::StackFrame, cache::Dict{Symbol, Symbol}) -> StackFrame
 
 Return `sf` with its function name replaced by [`demangle_name`](@ref), keeping the
-location and method instance.
+location and method instance. `cache` memoizes the demangling per function symbol, since
+the same frames repeat across the recorded stack traces.
 """
-function _demangled_sf(sf::StackFrame)
-    name = demangle_name(string(sf.func))
-    (name == string(sf.func)) && return sf
+function _demangled_sf(sf::StackFrame, cache::Dict{Symbol, Symbol})
+    func = get!(() -> Symbol(demangle_name(string(sf.func))), cache, sf.func)
+    (func === sf.func) && return sf
 
     return StackFrame(
-        Symbol(name),
+        func,
         sf.file,
         sf.line,
         sf.linfo,
@@ -536,6 +542,8 @@ function build_alloc_tree(results; line_costs = nothing)
     root_sf = StackFrame(Symbol("allocations"), Symbol(""), -1, nothing, false, false, 0)
     root = PVNode(root_sf)
     index = Dict{Tuple{UInt64, Any}, PVNode}()
+    demangle_cache = Dict{Symbol, Symbol}()
+    seen = Set{Symbol}()
 
     for a in results.allocs
         st = a.stacktrace
@@ -550,7 +558,7 @@ function build_alloc_tree(results; line_costs = nothing)
         node = root
 
         for i in lastindex(st):-1:leaf
-            sf = _demangled_sf(st[i])
+            sf = _demangled_sf(st[i], demangle_cache)
             node = _alloc_child!(index, node, (sf.func, sf.file, sf.line, sf.from_c), sf)
             node.count += a.size
             node.allocs += 1
@@ -563,7 +571,7 @@ function build_alloc_tree(results; line_costs = nothing)
         tnode.allocs += 1
 
         if line_costs !== nothing
-            seen = Set{Symbol}()
+            empty!(seen)
 
             for j in leaf:lastindex(st)
                 sf = st[j]
