@@ -440,13 +440,12 @@ end
     tview(m, frame)
     @test find_text(tb, "/a") !== nothing
 
-    # The prompt is right-aligned ("/a▏ " occupies the last four columns of the status
-    # bar) with the slash in the accent color and the query text in the theme text
-    # color.
-    @test char_at(tb, 97, 30) == '/'
-    @test char_at(tb, 98, 30) == 'a'
-    @test style_at(tb, 97, 30).fg == TS.tstyle(:accent).fg
-    @test style_at(tb, 98, 30).fg == TS.tstyle(:text).fg
+    # The prompt is left-aligned like the Neovim command line, with the slash in the
+    # accent color and the query text in the theme text color.
+    @test char_at(tb, 2, 30) == '/'
+    @test char_at(tb, 3, 30) == 'a'
+    @test style_at(tb, 2, 30).fg == TS.tstyle(:accent).fg
+    @test style_at(tb, 3, 30).fg == TS.tstyle(:text).fg
     update!(m, KeyEvent(:escape))
 end
 

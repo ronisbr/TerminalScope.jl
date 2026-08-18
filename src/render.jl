@@ -574,18 +574,26 @@ function render_status!(m::ProfileViewer, buf::Buffer, rect::Rect)
          "+/-" => "zoom", "t" => "src/IR", "q" => "close"]
     end
 
-    left = Span[Span(" ", txt)]
+    hint_spans = Span[]
 
     for (k, desc) in hints
-        push!(left, Span(k, key))
-        push!(left, Span(" " * desc * "  ", txt))
+        push!(hint_spans, Span(k, key))
+        push!(hint_spans, Span(" " * desc * "  ", txt))
+    end
+
+    # While searching, the prompt takes the left side like the Neovim command line, and
+    # the hints move to the right.
+    left = if searching
+        Span[
+            Span(" /", tstyle(:accent, bold = true)),
+            Span(m.search_input * "▏", tstyle(:text, bold = true))
+        ]
+    else
+        pushfirst!(hint_spans, Span(" ", txt))
     end
 
     right_spans = if searching
-        Span[
-            Span("/", tstyle(:accent, bold = true)),
-            Span(m.search_input * "▏ ", tstyle(:text, bold = true))
-        ]
+        hint_spans
     elseif !isempty(m.notice)
         Span[Span(m.notice * " ", tstyle(:accent, bold = true))]
     else
