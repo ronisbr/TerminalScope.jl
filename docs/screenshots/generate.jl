@@ -35,24 +35,55 @@ const WIDTH = 140
 const HEIGHT = 32
 
 # One terminal cell in pixels and the font size filling it, sized for crisp text on
-# high-density displays.
-const CELL_W = 18
+# high-density displays. The cell width follows the advance width of the chosen font
+# (see `_FONT_CANDIDATES`).
 const CELL_H = 36
 const FONT_SIZE = 30
 
 """
+    _ensure_iosevka() -> Nothing
+
+Extract the Iosevka faces used by the screenshots from the installed TrueType
+collection into `docs/screenshots/fonts/` (see `extract_iosevka.py`), when they are not
+extracted yet and the collection plus fontTools are available. The default Iosevka
+distribution is a super collection whose first face is the Thin weight, which the
+rasterizer cannot use directly.
+"""
+function _ensure_iosevka()
+    fonts_dir = joinpath(@__DIR__, "fonts")
+    isfile(joinpath(fonts_dir, "Iosevka-Regular.ttf")) && return nothing
+
+    ttc = joinpath(homedir(), "Library/Fonts/Iosevka.ttc")
+    isfile(ttc) || return nothing
+    success(`python3 -c "import fontTools"`) || return nothing
+
+    mkpath(fonts_dir)
+    run(`python3 $(joinpath(@__DIR__, "extract_iosevka.py")) $ttc $fonts_dir`)
+    return nothing
+end
+
+_ensure_iosevka()
+
+"""
     _FONT_CANDIDATES
 
-Candidate monospace fonts of [`FONT_PATH`](@ref), in order of preference.
+Candidate monospace fonts of [`FONT_PATH`](@ref) as `(path, cell width)` pairs, in
+order of preference. The cell width is the glyph advance at [`FONT_SIZE`](@ref):
+Iosevka advances 0.5 em and the other candidates 0.6 em.
 """
 const _FONT_CANDIDATES = [
-    joinpath(homedir(), "Library/Fonts/JetBrainsMonoNerdFont-Regular.ttf"),
-    joinpath(homedir(), "Library/Fonts/JetBrainsMono-Regular.ttf"),
-    joinpath(homedir(), ".local/share/fonts/JetBrainsMonoNerdFont-Regular.ttf"),
-    "/System/Library/Fonts/Menlo.ttc",
-    "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf",
-    "/usr/share/fonts/TTF/DejaVuSansMono.ttf",
+    (joinpath(@__DIR__, "fonts", "Iosevka-Regular.ttf"), 15),
+    (joinpath(homedir(), "Library/Fonts/JetBrainsMonoNerdFont-Regular.ttf"), 18),
+    (joinpath(homedir(), "Library/Fonts/JetBrainsMono-Regular.ttf"), 18),
+    (joinpath(homedir(), ".local/share/fonts/JetBrainsMonoNerdFont-Regular.ttf"), 18),
+    ("/System/Library/Fonts/Menlo.ttc", 18),
+    ("/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf", 18),
+    ("/usr/share/fonts/TTF/DejaVuSansMono.ttf", 18),
 ]
+
+const _FONT_CHOICE = let idx = findfirst(c -> isfile(c[1]), _FONT_CANDIDATES)
+    idx === nothing ? ("", 0) : _FONT_CANDIDATES[idx]
+end
 
 """
     FONT_PATH
@@ -62,9 +93,15 @@ Monospace font used to rasterize the screenshots: the first installed candidate 
 Extend the candidate list when regenerating the screenshots on a machine without any of
 these fonts.
 """
-const FONT_PATH = let idx = findfirst(isfile, _FONT_CANDIDATES)
-    idx === nothing ? "" : _FONT_CANDIDATES[idx]
-end
+const FONT_PATH = _FONT_CHOICE[1]
+
+"""
+    CELL_W
+
+Width [px] of one terminal cell: the glyph advance of [`FONT_PATH`](@ref) at
+[`FONT_SIZE`](@ref).
+"""
+const CELL_W = _FONT_CHOICE[2]
 
 isempty(FONT_PATH) && error(
     "No monospace font found. Extend the _FONT_CANDIDATES list in $(@__FILE__)."
