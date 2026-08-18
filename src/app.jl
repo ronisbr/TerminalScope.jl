@@ -80,6 +80,13 @@ Store the state of the interactive profile viewer application.
     and used by the mouse handling. It is empty while the panel is not shown.
 - `code_rect::Rect`: Screen area of the source panel, written during rendering and used
     by the mouse handling. It is empty while the panel is not shown.
+- `search_input::Union{String, Nothing}`: Text of the open search prompt, or `nothing`
+    while the prompt is closed.
+- `search_query::String`: Last confirmed search query, or an empty string.
+- `search_matches::Vector{PVNode}`: Frames matching `search_query` over the whole tree,
+    in depth-first order.
+- `search_idx::Int`: Index of the current match in `search_matches`, or `0` before the
+    first jump.
 """
 mutable struct ProfileViewer <: Model
     root::PVNode
@@ -108,6 +115,10 @@ mutable struct ProfileViewer <: Model
     zoom_panel::Symbol
     list_rows_rect::Rect
     code_rect::Rect
+    search_input::Union{String, Nothing}
+    search_query::String
+    search_matches::Vector{PVNode}
+    search_idx::Int
 end
 
 """
@@ -189,7 +200,11 @@ function _viewer(
         0,
         :list,
         Rect(),
-        Rect()
+        Rect(),
+        nothing,
+        "",
+        PVNode[],
+        0
     )
 
     m.tasks = Tachikoma.TaskQueue(;
@@ -395,6 +410,13 @@ function update!(m::ProfileViewer, evt::KeyEvent)
         return nothing
     end
 
+    # == Search Prompt =====================================================================
+
+    if m.search_input !== nothing
+        _update_search!(m, evt)
+        return nothing
+    end
+
     # == Global Keys =======================================================================
 
     if is_char('?')
@@ -470,7 +492,8 @@ Process the keyboard event `evt` for the main view, mutating the model `m`. The 
 focused with the Tab or number keys receives the movement keys: the frame list navigates
 the tree, and the source panel scrolls the code. `+` and `-` grow and shrink the focused
 panel one step at a time, up to maximizing it (see [`zoom!`](@ref)), and Esc restores
-the default split.
+the default split. `/` opens the frame search prompt, and `n` / `N` jump between the
+matches (see [`_search!`](@ref)).
 """
 function _update_tree!(m::ProfileViewer, evt::KeyEvent)
     is_char(c::Char) = (evt.key == :char) && (evt.char == c)
@@ -495,6 +518,15 @@ function _update_tree!(m::ProfileViewer, evt::KeyEvent)
 
     elseif evt.key == :escape
         m.zoom = 0
+
+    elseif is_char('/')
+        m.search_input = ""
+
+    elseif is_char('n')
+        _goto_match!(m, m.search_idx + 1)
+
+    elseif is_char('N')
+        _goto_match!(m, m.search_idx - 1)
 
     elseif is_char('i')
         inspect_selected!(m)
@@ -651,6 +683,112 @@ function _update_inspect!(m::ProfileViewer, evt::KeyEvent)
         inspect_toggle_view!(m)
     end
 
+    return nothing
+end
+
+############################################################################################
+#                                       Frame Search                                       #
+############################################################################################
+
+"""
+    _update_search!(m::ProfileViewer, evt::KeyEvent) -> Nothing
+
+Process the keyboard event `evt` while the search prompt is open, mutating the model
+`m`: printable characters append to the query, Backspace deletes the last one, Esc
+cancels, and Enter confirms, jumping to the first match (see [`_search!`](@ref)).
+"""
+function _update_search!(m::ProfileViewer, evt::KeyEvent)
+    input = m.search_input
+
+    if evt.key == :escape
+        m.search_input = nothing
+    elseif evt.key == :enter
+        m.search_input = nothing
+        _search!(m, input)
+    elseif evt.key == :backspace
+        isempty(input) || (m.search_input = input[1:prevind(input, end)])
+    elseif (evt.key == :char) && isprint(evt.char)
+        m.search_input = input * evt.char
+    end
+
+    return nothing
+end
+
+"""
+    _search_matches(root::PVNode, query::String) -> Vector{PVNode}
+
+Return the frames of the tree rooted at `root` whose name or location contains `query`
+(case-insensitively), in depth-first order. The aggregate root row is never matched, and
+an empty `query` matches nothing.
+"""
+function _search_matches(root::PVNode, query::String)
+    matches = PVNode[]
+    isempty(query) && return matches
+    q = lowercase(query)
+
+    function visit(node::PVNode)
+        if !is_tree_root(node) && (occursin(q, lowercase(node_name(node))) ||
+            occursin(q, lowercase(node_location(node))))
+            push!(matches, node)
+        end
+
+        for c in node.children
+            visit(c)
+        end
+
+        return nothing
+    end
+
+    visit(root)
+    return matches
+end
+
+"""
+    _search!(m::ProfileViewer, query::String) -> Nothing
+
+Search the whole profile tree of `m` for the frames matching `query` (see
+[`_search_matches`](@ref)), mutating the search state of `m` and jumping to the first
+match. A status notice reports when nothing matches; an empty `query` clears the search.
+"""
+function _search!(m::ProfileViewer, query::String)
+    m.search_query = query
+    m.search_matches = _search_matches(m.root, query)
+    m.search_idx = 0
+
+    isempty(query) && return nothing
+
+    if isempty(m.search_matches)
+        m.notice = "No frames match \"$(query)\"."
+        return nothing
+    end
+
+    _goto_match!(m, 1)
+    return nothing
+end
+
+"""
+    _goto_match!(m::ProfileViewer, idx::Int) -> Nothing
+
+Navigate the frame list of `m` to the search match of index `idx`, wrapping around the
+match list, and report the position in a status notice. Do nothing when there are no
+matches.
+"""
+function _goto_match!(m::ProfileViewer, idx::Int)
+    n = length(m.search_matches)
+    (n == 0) && return nothing
+
+    m.search_idx = mod1(idx, n)
+    match = m.search_matches[m.search_idx]
+    parent = match.parent
+
+    if parent === nothing
+        set_current!(m, match, nothing)
+    else
+        set_current!(m, parent, match)
+    end
+
+    m.tree_focus = :list
+    m.notice = "Match $(m.search_idx)/$(n) for \"$(m.search_query)\"."
     return nothing
 end
 

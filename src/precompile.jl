@@ -86,6 +86,14 @@ PrecompileTools.@setup_workload begin
         view(m, frame)
         update!(m, KeyEvent(:char, '1'))
 
+        # Frame search: prompt rendering, confirmation, and match cycling.
+        update!(m, KeyEvent(:char, '/'))
+        update!(m, KeyEvent(:char, 'g'))
+        view(m, frame)
+        update!(m, KeyEvent(:enter))
+        update!(m, KeyEvent(:char, 'n'))
+        view(m, frame)
+
         # Help dialog.
         update!(m, KeyEvent(:char, '?'))
         view(m, frame)

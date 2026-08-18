@@ -32,6 +32,8 @@ the movement keys act on the focused one.
 | `+` / `-`         | Maximize / restore the focused panel                          |
 | `0` / `$`         | Source panel: go to the line start / end                      |
 | `^D` / `^U`       | Source panel: scroll half a page                              |
+| `/`               | Search frames in the whole tree (case-insensitive)            |
+| `n` / `N`         | Jump to the next / previous search match                      |
 | `i`               | Inspect the selected frame for type instabilities             |
 | `u`               | Allocations: toggle between bytes and allocation counts       |
 | `?`               | Toggle the help dialog                                        |

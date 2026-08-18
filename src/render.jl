@@ -18,6 +18,8 @@ const HELP_ENTRIES = (
     (:tree,    "Tab, 1 / 2",  "Focus the list / source panel"),
     (:tree,    "0 / \$",      "Code: go to the line start / end"),
     (:tree,    "^D / ^U",     "Code: scroll half a page"),
+    (:tree,    "/",           "Search frames in the whole tree"),
+    (:tree,    "n / N",       "Jump to the next / previous match"),
     (:tree,    "i",           "Inspect type instabilities"),
     (:tree,    "u",           "Toggle bytes / allocs (allocations)"),
     (:tree,    "q",           "Quit the application"),
@@ -554,11 +556,16 @@ function render_status!(m::ProfileViewer, buf::Buffer, rect::Rect)
     key = tstyle(:accent, bold = true)
     txt = tstyle(:text_dim)
 
+    searching = (m.mode == :tree) && (m.search_input !== nothing)
+
     hints = if m.help
         ["esc/q" => "close"]
+    elseif searching
+        ["⏎" => "search", "esc" => "cancel"]
     elseif m.mode == :tree
         hints = ["↑↓" => "move", "⏎/→" => "enter", "⌫/←" => "back", "1/2" => "pane",
-            "+/-" => "zoom", "i" => "inspect", "?" => "help", "q" => "quit"]
+            "+/-" => "zoom", "/" => "search", "i" => "inspect", "?" => "help",
+            "q" => "quit"]
         ((m.unit === :bytes) || (m.unit === :allocs)) &&
             insert!(hints, 6, "u" => m.unit === :bytes ? "by allocs" : "by memory")
         hints
@@ -574,7 +581,9 @@ function render_status!(m::ProfileViewer, buf::Buffer, rect::Rect)
         push!(left, Span(" " * desc * "  ", txt))
     end
 
-    right_spans = if !isempty(m.notice)
+    right_spans = if searching
+        Span[Span("/" * m.search_input * "▏ ", tstyle(:accent, bold = true))]
+    elseif !isempty(m.notice)
         Span[Span(m.notice * " ", tstyle(:accent, bold = true))]
     else
         crumb_str = m.mode == :inspect ? inspect_breadcrumb(m.inspect) :
