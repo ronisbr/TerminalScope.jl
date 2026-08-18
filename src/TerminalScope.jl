@@ -38,46 +38,31 @@ include("render.jl")
 ## Lazy Backends ###########################################################################
 
 """
-    _CTHULHU_ID
-
-Package identifier of Cthulhu, used to load it on demand.
-"""
-const _CTHULHU_ID = Base.PkgId(Base.UUID("f68482b8-f384-11e8-15f7-abe071a5a75f"), "Cthulhu")
-
-"""
-    _SNOOPCOMPILE_ID
-
-Package identifier of SnoopCompile, used to load it on demand.
-"""
-const _SNOOPCOMPILE_ID = Base.PkgId(
-    Base.UUID("aa65fe97-06da-5843-b5b1-d5d13cad87d2"), "SnoopCompile"
-)
-
-"""
-    _load_backend(pkg::Base.PkgId, ext::Symbol; quiet::Bool = false) -> Bool
+    _load_backend(pkg::Symbol, ext::Symbol; quiet::Bool = false) -> Bool
 
 Load the dependency `pkg` so that the extension `ext` activates, returning whether the
 extension is available afterwards. The load is skipped when the extension is already
 active. `quiet` suppresses the loading message and any load-time output, used when a
 Tachikoma application controls the terminal.
 
-Cthulhu and SnoopCompile are loaded this way, on first use, because loading them
-invalidates compiled code of unrelated packages; sessions that only use the profilers
-never pay that cost.
+The load evaluates an `import` statement into this module, resolving `pkg` through the
+package dependencies, so only public language surface is used. Cthulhu and SnoopCompile
+are loaded this way, on first use, because loading them invalidates compiled code of
+unrelated packages; sessions that only use the profilers never pay that cost.
 """
-function _load_backend(pkg::Base.PkgId, ext::Symbol; quiet::Bool = false)
+function _load_backend(pkg::Symbol, ext::Symbol; quiet::Bool = false)
     (Base.get_extension(@__MODULE__, ext) !== nothing) && return true
 
     try
         if quiet
             redirect_stdout(devnull) do
                 redirect_stderr(devnull) do
-                    return Base.require(pkg)
+                    return Core.eval(@__MODULE__, :(import $pkg))
                 end
             end
         else
-            _scope_info("Loading $(pkg.name) (one-time initialization of this feature)...")
-            Base.require(pkg)
+            _scope_info("Loading $pkg (one-time initialization of this feature)...")
+            Core.eval(@__MODULE__, :(import $pkg))
         end
     catch
         return false
@@ -92,7 +77,7 @@ end
 Load Cthulhu on demand and return whether the inspector backend is available.
 """
 _ensure_inspector(; quiet::Bool = false) =
-    _load_backend(_CTHULHU_ID, :TerminalScopeCthulhuExt; quiet = quiet)
+    _load_backend(:Cthulhu, :TerminalScopeCthulhuExt; quiet = quiet)
 
 """
     _ensure_snoopcompile(; quiet::Bool = false) -> Bool
@@ -100,7 +85,7 @@ _ensure_inspector(; quiet::Bool = false) =
 Load SnoopCompile on demand and return whether the invalidation backend is available.
 """
 _ensure_snoopcompile(; quiet::Bool = false) =
-    _load_backend(_SNOOPCOMPILE_ID, :TerminalScopeSnoopCompileExt; quiet = quiet)
+    _load_backend(:SnoopCompile, :TerminalScopeSnoopCompileExt; quiet = quiet)
 
 """
     _invalidation_trees(invs) -> Vector
