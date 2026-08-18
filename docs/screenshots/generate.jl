@@ -43,6 +43,9 @@ const HEIGHT = 32
 const CELL_H = 36
 const FONT_SIZE = 30
 
+# Width [px] of the background-colored border added around the rasterized frame.
+const BORDER = 24
+
 """
     _FONTS_DIR
 
@@ -335,7 +338,8 @@ _rgb(r::Integer, g::Integer, b::Integer) =
 
 Render one frame of the model `m` under the `theme` variant and rasterize it with
 [`FONT_PATH`](@ref) to `OUT_DIR/name.png` (a single-frame APNG, which every viewer
-displays as a still PNG).
+displays as a still PNG), padded with a background-colored border of [`BORDER`](@ref)
+pixels.
 """
 function render_png(m, name::String; theme::Symbol = :dark)
     set_theme!(theme === :dark ? TS.SCOPE_DARK_THEME : TS.SCOPE_LIGHT_THEME)
@@ -377,9 +381,12 @@ function render_png(m, name::String; theme::Symbol = :dark)
         default_fg = fg,
     )
 
-    # The APNG writer stores the pixels uncompressed; re-encode the single frame as a
-    # plain compressed PNG.
-    PNGFiles.save(path, PNGFiles.load(path))
+    # The APNG writer stores the pixels uncompressed; pad the single frame with a
+    # background-colored border and re-encode it as a plain compressed PNG.
+    img = PNGFiles.load(path)
+    padded = fill(convert(eltype(img), bg), size(img) .+ 2 * BORDER)
+    padded[(BORDER + 1):(end - BORDER), (BORDER + 1):(end - BORDER)] .= img
+    PNGFiles.save(path, padded)
 
     set_theme!(TS.SCOPE_DARK_THEME)
     Tachikoma.set_light_mode!(false)
