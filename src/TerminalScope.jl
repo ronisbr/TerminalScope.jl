@@ -114,6 +114,33 @@ function theme!(variant::Symbol)
 end
 
 """
+    _print_message(prefix::String, msg::String) -> Nothing
+
+Print `msg` to `stderr` after the bold `[ <prefix>: ` marker styled in the accent color
+of the default theme, so messages printed outside the viewers match the amber chrome.
+"""
+function _print_message(prefix::String, msg::String)
+    accent = Int(_theme_for(DEFAULT_THEME[]).accent.code)
+    printstyled(stderr, "[ ", prefix, ": "; color = accent, bold = true)
+    println(stderr, msg)
+    return nothing
+end
+
+"""
+    _scope_info(msg::String) -> Nothing
+
+Print the informative message `msg` in the TerminalScope style.
+"""
+_scope_info(msg::String) = _print_message("Info", msg)
+
+"""
+    _scope_warn(msg::String) -> Nothing
+
+Print the warning message `msg` in the TerminalScope style.
+"""
+_scope_warn(msg::String) = _print_message("Warning", msg)
+
+"""
     _run_app(m::ProfileViewer; theme::Symbol = DEFAULT_THEME[]) -> Nothing
 
 Run the Tachikoma application for the model `m` under the `theme` variant (`:dark` or
@@ -184,7 +211,9 @@ function scope_profile(;
     g = FlameGraphs.flamegraph()
 
     if g === nothing
-        @warn "The profile is empty. Run `@scope expr` or `Profile.@profile expr` first."
+        _scope_warn(
+            "The profile is empty. Run `@scope expr` or `Profile.@profile expr` first."
+        )
         return nothing
     end
 
@@ -235,8 +264,10 @@ See also [`@scope`](@ref).
 """
 function scope_allocs(results = Profile.Allocs.fetch(); theme::Symbol = DEFAULT_THEME[])
     if isempty(results.allocs)
-        @warn "The allocation profile is empty. Run `@scope allocs expr` or " *
+        _scope_warn(
+            "The allocation profile is empty. Run `@scope allocs expr` or " *
             "`Profile.Allocs.@profile expr` first."
+        )
         return nothing
     end
 
@@ -340,7 +371,7 @@ function _load_backend(pkg::Base.PkgId, ext::Symbol; quiet::Bool = false)
                 end
             end
         else
-            @info "Loading $(pkg.name) (one-time initialization of this feature)..."
+            _scope_info("Loading $(pkg.name) (one-time initialization of this feature)...")
             Base.require(pkg)
         end
     catch
@@ -408,15 +439,17 @@ See also [`@scope`](@ref).
 """
 function scope_invalidations(@nospecialize(invs); theme::Symbol = DEFAULT_THEME[])
     if !(invs isa AbstractVector) && !_ensure_snoopcompile()
-        @warn "Could not load SnoopCompile, which is required to organize raw " *
+        _scope_warn(
+            "Could not load SnoopCompile, which is required to organize raw " *
             "invalidation data. The raw data is returned unchanged."
+        )
         return invs
     end
 
     trees = _invalidation_forest(invs)
 
     if isempty(trees)
-        @warn "No invalidations were recorded."
+        _scope_warn("No invalidations were recorded.")
         return nothing
     end
 
@@ -484,14 +517,14 @@ function scope_descend(
     theme::Symbol = DEFAULT_THEME[]
 )
     if !_ensure_inspector()
-        @warn "Could not load Cthulhu, which the type-instability inspector requires."
+        _scope_warn("Could not load Cthulhu, which the type-instability inspector requires.")
         return nothing
     end
 
     mi = Base.invokelatest(_descend_specialization, f, types)
 
     if mi === nothing
-        @warn "No method of the given function matches the given argument types."
+        _scope_warn("No method of the given function matches the given argument types.")
         return nothing
     end
 
