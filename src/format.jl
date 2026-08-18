@@ -74,9 +74,11 @@ end
 """
     format_seconds(t::Float64) -> String
 
-Return the duration `t` [s] formatted with automatic scaling to ms, s, or min.
+Return the duration `t` [s] formatted with automatic scaling to ns, µs, ms, s, or min.
 """
 function format_seconds(t::Float64)
+    t < 1e-6 && return string(round(t * 1e9; digits = 1), " ns")
+    t < 1e-3 && return string(round(t * 1e6; digits = 1), " µs")
     t < 1 && return string(round(t * 1000; digits = 1), " ms")
     t < 60 && return string(round(t; digits = 2), " s")
     m = floor(Int, t / 60)

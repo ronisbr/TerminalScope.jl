@@ -140,6 +140,9 @@ end
     @test TS.format_pct(0.04) == "<0.1%"
     @test TS.format_pct(100.0) == "100.0%"
 
+    @test TS.format_seconds(0.0) == "0.0 ns"
+    @test TS.format_seconds(4.2e-7) == "420.0 ns"
+    @test TS.format_seconds(3.4e-4) == "340.0 µs"
     @test TS.format_seconds(0.0012) == "1.2 ms"
     @test TS.format_seconds(12.34) == "12.34 s"
     @test TS.format_seconds(65.0) == "1 min 5.0 s"
