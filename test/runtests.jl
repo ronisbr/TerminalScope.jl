@@ -1261,7 +1261,7 @@ const _WARM_COUNT = Ref(0)
         frame("kwcall", 0),
         frame("f", 10)
     ]
-    lc = Dict{Tuple{Symbol, Int}, Tuple{Int, Int}}()
+    lc = Dict{Symbol, Dict{Int, Tuple{Int, Int}}}()
     wroot = TS.build_alloc_tree(
         (allocs = [Profile.Allocs.Alloc(Int, wrapped, 64, C_NULL, UInt64(0))],);
         line_costs = lc
@@ -1271,7 +1271,7 @@ const _WARM_COUNT = Ref(0)
     @test f.sf.line == 10
     @test TS.node_name(f.children[1]) == "g"
     @test TS.node_name(f.children[1].children[1]) == "Int64"
-    @test lc == Dict((file, 20) => (64, 1))
+    @test lc == Dict(file => Dict(20 => (64, 1)))
 
     # The source panel of an allocating frame shows the per-line cost column, following
     # the active unit.

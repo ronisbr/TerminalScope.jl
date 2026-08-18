@@ -133,7 +133,7 @@ Create the viewer model from the allocation profile `results` returned by
 the secondary cost.
 """
 function alloc_viewer(results)
-    line_costs = Dict{Tuple{Symbol, Int}, Tuple{Int, Int}}()
+    line_costs = Dict{Symbol, Dict{Int, Tuple{Int, Int}}}()
     root = build_alloc_tree(results; line_costs = line_costs)
     m = _viewer(root, :bytes, 0.0, nothing, 0)
     m.line_costs = line_costs

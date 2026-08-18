@@ -58,10 +58,10 @@ Store the state of the interactive profile viewer application.
 - `inference_samples::Int`: Number of samples spent in type inference, or `0` when the
     unit is not `:samples`.
 - `inspect::InspectState`: State of the type-instability inspector.
-- `line_costs::Dict{Tuple{Symbol, Int}, Tuple{Int, Int}}`: Bytes and allocation counts
-    charged to each `(file, line)` — per file, the innermost frame of each allocation —
-    filled by the allocation viewer and used by the per-line column of the detail view.
-    Empty for the other viewers.
+- `line_costs::Dict{Symbol, Dict{Int, Tuple{Int, Int}}}`: Bytes and allocation counts
+    charged to each line of each file — per file, the innermost frame of each
+    allocation — filled by the allocation viewer and used by the per-line column of the
+    detail view. Empty for the other viewers.
 - `notice::String`: Transient message shown in the status bar until the next key press,
     or an empty string.
 - `tasks::Any`: `Tachikoma.TaskQueue` draining background tasks (e.g. the on-demand
@@ -106,7 +106,7 @@ mutable struct ProfileViewer <: Model
     compile::Union{CompileStats, Nothing}
     inference_samples::Int
     inspect::InspectState
-    line_costs::Dict{Tuple{Symbol, Int}, Tuple{Int, Int}}
+    line_costs::Dict{Symbol, Dict{Int, Tuple{Int, Int}}}
     notice::String
     tasks::Any
     wake::Base.RefValue{Any}
@@ -192,7 +192,7 @@ function _viewer(
         compile,
         inference,
         InspectState(),
-        Dict{Tuple{Symbol, Int}, Tuple{Int, Int}}(),
+        Dict{Symbol, Dict{Int, Tuple{Int, Int}}}(),
         "",
         nothing,
         Base.RefValue{Any}(nothing),

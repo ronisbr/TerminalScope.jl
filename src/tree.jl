@@ -525,11 +525,12 @@ the deepest frame shows what was allocated there. Frame names are demangled with
 [`demangle_name`](@ref), and keyword wrapper frames are collapsed by
 [`_collapse_alloc_wrappers!`](@ref).
 
-When `line_costs` is a `Dict{Tuple{Symbol, Int}, Tuple{Int, Int}}`, it is filled with
-the `(bytes, allocations)` charged to each `(file, line)`. Each allocation charges, in
+When `line_costs` is a `Dict{Symbol, Dict{Int, Tuple{Int, Int}}}`, it is filled with the
+`(bytes, allocations)` charged to each line of each file. Each allocation charges, in
 every file its stack passes through, only the innermost frame of that file — so within a
 file the cost lands on the line closest to the allocation and caller lines stay clean,
-while user files are still credited for allocations that bottom out inside Base.
+while user files are still credited for allocations that bottom out inside Base. The
+per-file grouping lets the detail view fetch the costs of one file with a single lookup.
 """
 function build_alloc_tree(results; line_costs = nothing)
     root_sf = StackFrame(Symbol("allocations"), Symbol(""), -1, nothing, false, false, 0)
@@ -569,9 +570,9 @@ function build_alloc_tree(results; line_costs = nothing)
                 (sf.from_c || (sf.line <= 0) || (sf.file in seen)) && continue
                 push!(seen, sf.file)
 
-                key = (sf.file, Int(sf.line))
-                bytes, n = get(line_costs, key, (0, 0))
-                line_costs[key] = (bytes + a.size, n + 1)
+                file_costs = get!(Dict{Int, Tuple{Int, Int}}, line_costs, sf.file)
+                bytes, n = get(file_costs, Int(sf.line), (0, 0))
+                file_costs[Int(sf.line)] = (bytes + a.size, n + 1)
             end
         end
     end

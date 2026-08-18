@@ -615,13 +615,14 @@ allocated.
 function line_cost_column(m, node::PVNode)
     ((m.unit === :bytes) || (m.unit === :allocs)) || return nothing
 
-    file = node.sf.file
+    file_costs = get(m.line_costs, node.sf.file, nothing)
+    (file_costs === nothing) && return nothing
+
     vals = Dict{Int, Int}()
 
-    for ((f, l), (bytes, n)) in m.line_costs
-        (f === file) || continue
+    for (l, (bytes, n)) in file_costs
         v = m.unit === :bytes ? bytes : n
-        (v > 0) && (vals[l] = get(vals, l, 0) + v)
+        (v > 0) && (vals[l] = v)
     end
 
     isempty(vals) && return nothing
