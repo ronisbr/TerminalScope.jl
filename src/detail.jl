@@ -281,10 +281,15 @@ end
 Highlight the Julia source `content` with `JuliaSyntaxHighlighting` and return, for each
 of its `nlines` lines, the styled segments as character ranges within the line. Return
 unstyled segments when the highlighter fails.
+
+The distinct face values are interned into a small table so the per-byte face map is a
+compact integer vector instead of one boxed slot per code unit of the whole file.
 """
 function highlight_lines(content::String, nlines::Int)
-    face_of = Vector{Any}(undef, ncodeunits(content))
-    fill!(face_of, nothing)
+    # Face of each code unit as an id into `faces`, where `0` means no face.
+    face_of = zeros(UInt16, ncodeunits(content))
+    faces = Any[]
+    face_ids = Dict{Any, UInt16}()
 
     try
         hl = JuliaSyntaxHighlighting.highlight(content)
@@ -292,9 +297,14 @@ function highlight_lines(content::String, nlines::Int)
         for a in Base.annotations(hl)
             (a.label === :face) || continue
 
-            for b in a.region
-                face_of[b] = a.value
+            id = get!(face_ids, a.value) do
+                push!(faces, a.value)
+                UInt16(length(faces))
             end
+
+            # `Base.view` must be qualified because `view` is the Tachikoma render
+            # entry point inside this module.
+            fill!(Base.view(face_of, a.region), id)
         end
     catch
         # Fall through and emit unstyled segments.
@@ -304,9 +314,10 @@ function highlight_lines(content::String, nlines::Int)
     cur = Tuple{UnitRange{Int}, Style}[]
     col = 0
     seg_lo = 1
-    seg_face = nothing
+    seg_fid = UInt16(0)
 
-    flush_segment!() = (col >= seg_lo) && push!(cur, (seg_lo:col, face_style(seg_face)))
+    flush_segment!() = (col >= seg_lo) &&
+        push!(cur, (seg_lo:col, face_style(seg_fid == 0 ? nothing : faces[seg_fid])))
 
     for i in eachindex(content)
         if content[i] == '\n'
@@ -315,18 +326,18 @@ function highlight_lines(content::String, nlines::Int)
             cur = Tuple{UnitRange{Int}, Style}[]
             col = 0
             seg_lo = 1
-            seg_face = nothing
+            seg_fid = UInt16(0)
             continue
         end
 
-        f = face_of[i]
+        fid = face_of[i]
 
-        if (f !== seg_face) && (col >= seg_lo)
+        if (fid != seg_fid) && (col >= seg_lo)
             flush_segment!()
             seg_lo = col + 1
-            seg_face = f
+            seg_fid = fid
         elseif col < seg_lo
-            seg_face = f
+            seg_fid = fid
         end
 
         col += 1
