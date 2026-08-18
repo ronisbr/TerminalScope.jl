@@ -191,7 +191,7 @@ function render_header_extra!(m::ProfileViewer, buf::Buffer, x::Int, y::Int, mx:
             x,
             y,
             string(format_count(m.inference_samples), " (", format_pct(pct), ")"),
-            Style(; fg = CYAN.c400, bold = true);
+            tstyle(:primary, bold = true);
             max_x = mx
         )
         x = set_string!(buf, x, y, "   ", label; max_x = mx)
@@ -492,7 +492,7 @@ function render_row!(
             x,
             y,
             " [dyn]",
-            with_selection(Style(; fg = RED.c400, bold = true), selected);
+            with_selection(tstyle(:error, bold = true), selected);
             max_x = mx
         )
     end
@@ -503,7 +503,7 @@ function render_row!(
             x,
             y,
             " [GC]",
-            with_selection(Style(; fg = ORANGE.c400, bold = true), selected);
+            with_selection(tstyle(:warning, bold = true), selected);
             max_x = mx
         )
     end
@@ -514,7 +514,7 @@ function render_row!(
             x,
             y,
             " [inf]",
-            with_selection(Style(; fg = CYAN.c400, bold = true), selected);
+            with_selection(tstyle(:primary, bold = true), selected);
             max_x = mx
         )
     end
@@ -539,7 +539,7 @@ function render_row!(
                 x,
                 y,
                 " [$pkg]",
-                with_selection(Style(; fg = GRAY.c500, italic = true), selected);
+                with_selection(package_style(), selected);
                 max_x = mx
             )
         end

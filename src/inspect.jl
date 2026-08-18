@@ -19,6 +19,8 @@ Represent one row of the call-site list of the inspector.
 - `ci::Union{Core.CodeInstance, Nothing}`: Inferred code instance of the callee used to
     descend into it, or `nothing` when the call cannot be descended into.
 - `dynamic::Bool`: Whether the call is a runtime (dynamic) dispatch.
+- `unstable::Bool`: Whether the inferred return type is type-unstable (see
+    [`is_unstable_rt`](@ref)).
 - `sub::Bool`: Whether the entry is one target of a union-split call site.
 """
 struct InspectEntry
@@ -28,6 +30,7 @@ struct InspectEntry
     line::Int
     ci::Union{Core.CodeInstance, Nothing}
     dynamic::Bool
+    unstable::Bool
     sub::Bool
 end
 
@@ -121,17 +124,24 @@ InspectState() =
 ############################################################################################
 
 """
+    is_unstable_rt(rt) -> Bool
+
+Return `true` if the inferred return type `rt` is type-unstable, i.e., a non-concrete
+`Type` as classified by `TypedSyntax.is_type_unstable`.
+"""
+is_unstable_rt(@nospecialize(rt)) = (rt isa Type) && TypedSyntax.is_type_unstable(rt)
+
+"""
     type_stability_style(rt) -> Style
 
-Return the style of the inferred type `rt` following the Cthulhu conventions: red for
-abstract types, the theme warning gold for small `Union`s, and cyan for concrete
-(stable) types.
+Return the style of the inferred type `rt` following the Cthulhu conventions: the theme
+error color for abstract types, the warning color for small `Union`s, and the primary
+(cyan) color for concrete (stable) types.
 """
 function type_stability_style(@nospecialize(rt))
-    (rt isa Type) || return Style(; fg = CYAN.c400)
-    TypedSyntax.is_type_unstable(rt) || return Style(; fg = CYAN.c400)
+    is_unstable_rt(rt) || return tstyle(:primary)
     TypedSyntax.is_small_union_or_tunion(rt) && return tstyle(:warning, bold = true)
-    return Style(; fg = RED.c400, bold = true)
+    return tstyle(:error, bold = true)
 end
 
 """
@@ -140,7 +150,7 @@ end
 Return `true` if the call site `e` returns a type-unstable value or is a dynamic
 dispatch.
 """
-is_unstable_entry(e::InspectEntry) = e.dynamic || (e.rt_style.fg != CYAN.c400)
+is_unstable_entry(e::InspectEntry) = e.dynamic || e.unstable
 
 """
     ansi_spans(text::AbstractString) -> Vector{Vector{Span}}
@@ -656,7 +666,7 @@ function render_inspect_entry!(
         x,
         y,
         " [dyn]",
-        with_selection(Style(; fg = RED.c400, bold = true), selected);
+        with_selection(tstyle(:error, bold = true), selected);
         max_x = mx
     ))
 

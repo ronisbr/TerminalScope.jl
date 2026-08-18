@@ -156,15 +156,32 @@ function bar_style(pct::Float64)
 end
 
 """
+    _TEXT_TERTIARY
+
+Tertiary text color of the SatelliteAnalysis.jl presentation palette (`#64748B`), used
+for the package ownership labels. It is legible on both the navy and the white surfaces,
+so it is shared by the two theme variants.
+"""
+const _TEXT_TERTIARY = SLATE.c500
+
+"""
+    package_style() -> Style
+
+Return the style of the package ownership labels, e.g. `[SatelliteToolbox.jl]`.
+"""
+package_style() = Style(; fg = _TEXT_TERTIARY, italic = true)
+
+"""
     row_name_style(node::PVNode) -> Style
 
-Return the style of the function name of `node` in the tree view: red for runtime
-dispatch, orange for garbage collection, dimmed for C frames, bright and bold for hot
-frames (≥ 50 % of the total samples), and the default text style otherwise.
+Return the style of the function name of `node` in the tree view: the theme error color
+for runtime dispatch, the warning color for garbage collection, dimmed for C frames,
+bright and bold for hot frames (≥ 50 % of the total samples), and the default text style
+otherwise.
 """
 function row_name_style(node::PVNode)
-    is_dispatch(node) && return Style(; fg = RED.c400)
-    is_gc(node) && return Style(; fg = ORANGE.c400)
+    is_dispatch(node) && return tstyle(:error)
+    is_gc(node) && return tstyle(:warning)
     node.sf.from_c && return tstyle(:text_dim)
     node.pct_total >= 50 && return tstyle(:text_bright, bold = true)
     return tstyle(:text)

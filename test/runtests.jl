@@ -678,9 +678,12 @@ end
     @test ext[1][1].style.fg == Tachikoma.Color256(99)
 
     # Stability classification: concrete, small union, and abstract types.
-    @test TS.type_stability_style(Int).fg == Tachikoma.CYAN.c400
+    @test !TS.is_unstable_rt(Int)
+    @test TS.is_unstable_rt(Union{Int, Float64})
+    @test TS.is_unstable_rt(Any)
+    @test TS.type_stability_style(Int).fg == TS.tstyle(:primary).fg
     @test TS.type_stability_style(Union{Int, Float64}).fg == TS.tstyle(:warning).fg
-    @test TS.type_stability_style(Any).fg == Tachikoma.RED.c400
+    @test TS.type_stability_style(Any).fg == TS.tstyle(:error).fg
 
     # Standalone inspector on a type-unstable call chain.
     mi = Cthulhu.get_specialization(_inspect_caller, Tuple{Int})

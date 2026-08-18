@@ -12,7 +12,7 @@ using Cthulhu
 using TerminalScope
 
 using TerminalScope: InspectEntry, InspectFrame, _error_frame, _mi_label, ansi_spans,
-    sync_inspect_code!, type_stability_style
+    is_unstable_rt, sync_inspect_code!, type_stability_style
 
 const Logging = TerminalScope.Logging
 const Tachikoma = TerminalScope.Tachikoma
@@ -70,6 +70,7 @@ function _callsite_entry(@nospecialize(info), cs::Cthulhu.Callsite, line::Int; s
         line,
         _callsite_ci(info),
         info isa Cthulhu.RTCallInfo,
+        is_unstable_rt(rt),
         sub
     )
 end

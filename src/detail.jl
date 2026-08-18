@@ -432,9 +432,9 @@ function info_strip(node::PVNode, delay::Float64, unit::Symbol)
     # == Name and Flags ====================================================================
 
     top = Span[Span(node_name(node), tstyle(:title, bold = true))]
-    is_dispatch(node) && push!(top, Span(" [dyn]", Style(; fg = RED.c400, bold = true)))
-    is_gc(node) && push!(top, Span(" [GC]", Style(; fg = ORANGE.c400, bold = true)))
-    is_inference(node) && push!(top, Span(" [inf]", Style(; fg = CYAN.c400, bold = true)))
+    is_dispatch(node) && push!(top, Span(" [dyn]", tstyle(:error, bold = true)))
+    is_gc(node) && push!(top, Span(" [GC]", tstyle(:warning, bold = true)))
+    is_inference(node) && push!(top, Span(" [inf]", tstyle(:primary, bold = true)))
     node.sf.from_c && push!(top, Span(" [C]", tstyle(:text_dim)))
     node.sf.inlined && push!(top, Span(" [inlined]", tstyle(:secondary)))
 
@@ -442,8 +442,7 @@ function info_strip(node::PVNode, delay::Float64, unit::Symbol)
     !isempty(loc) && push!(top, Span("  " * loc, tstyle(:text_dim, italic = true)))
 
     pkg = node_package(node)
-    (pkg !== nothing) &&
-        push!(top, Span(" [$pkg]", Style(; fg = GRAY.c500, italic = true)))
+    (pkg !== nothing) && push!(top, Span(" [$pkg]", package_style()))
 
     # == Costs =============================================================================
 
@@ -677,7 +676,7 @@ function render_source_panel!(m, buf::Buffer, rect::Rect; focused::Bool)
     block = Block(;
         title = title,
         title_right = title_right,
-        title_right_style = Style(; fg = GRAY.c500, italic = true),
+        title_right_style = package_style(),
         border_style = tstyle(focused ? :border_focus : :border),
         title_style = tstyle(:title, bold = focused),
         box = BOX_ROUNDED
