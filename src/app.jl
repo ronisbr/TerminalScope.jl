@@ -259,14 +259,23 @@ node itself.
 is_parent_row(m::ProfileViewer, node::PVNode) = node === m.current
 
 """
+    _clamped_scroll(scroll::Int, cursor::Int, h::Int, n::Int) -> Int
+
+Return `scroll` clamped so that the 1-based `cursor` row stays inside a visible pane of
+`h` rows scrolling over a list of `n` rows.
+"""
+function _clamped_scroll(scroll::Int, cursor::Int, h::Int, n::Int)
+    scroll = clamp(scroll, cursor - h, cursor - 1)
+    return clamp(scroll, 0, max(0, n - h))
+end
+
+"""
     clamp_scroll!(m::ProfileViewer) -> Nothing
 
 Mutate `m.scroll` so that the cursor row stays inside the visible pane.
 """
 function clamp_scroll!(m::ProfileViewer)
-    h = max(m.visible_h, 1)
-    m.scroll = clamp(m.scroll, m.cursor - h, m.cursor - 1)
-    m.scroll = clamp(m.scroll, 0, max(0, length(m.rows) - h))
+    m.scroll = _clamped_scroll(m.scroll, m.cursor, max(m.visible_h, 1), length(m.rows))
     return nothing
 end
 

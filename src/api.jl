@@ -136,7 +136,6 @@ function alloc_viewer(results)
     line_costs = Dict{Tuple{Symbol, Int}, Tuple{Int, Int}}()
     root = build_alloc_tree(results; line_costs = line_costs)
     m = _viewer(root, :bytes, 0.0, nothing, 0)
-    m.nsamples = root.count
     m.line_costs = line_costs
     return m
 end

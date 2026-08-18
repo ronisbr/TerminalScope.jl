@@ -486,37 +486,8 @@ function render_row!(
 
     x = set_string!(buf, x, y, node_name(node), name_style; max_x = mx)
 
-    if is_dispatch(node)
-        x = set_string!(
-            buf,
-            x,
-            y,
-            " [dyn]",
-            with_selection(tstyle(:error, bold = true), selected);
-            max_x = mx
-        )
-    end
-
-    if is_gc(node)
-        x = set_string!(
-            buf,
-            x,
-            y,
-            " [GC]",
-            with_selection(tstyle(:warning, bold = true), selected);
-            max_x = mx
-        )
-    end
-
-    if is_inference(node)
-        x = set_string!(
-            buf,
-            x,
-            y,
-            " [inf]",
-            with_selection(tstyle(:primary, bold = true), selected);
-            max_x = mx
-        )
+    for (tag, style) in node_tags(node)
+        x = set_string!(buf, x, y, tag, with_selection(style, selected); max_x = mx)
     end
 
     loc = node_location(node)
@@ -564,9 +535,7 @@ function breadcrumb(node::Union{PVNode, Nothing})
         n = n.parent
     end
 
-    path = join(names, " ▸ ")
-    length(path) <= 60 && return path
-    return "…" * path[prevind(path, end, 59):end]
+    return _truncate_crumb(join(names, " ▸ "))
 end
 
 """

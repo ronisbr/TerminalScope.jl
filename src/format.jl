@@ -172,6 +172,32 @@ Return the style of the package ownership labels, e.g. `[SatelliteToolbox.jl]`.
 package_style() = Style(; fg = _TEXT_TERTIARY, italic = true)
 
 """
+    node_tags(node::PVNode) -> Vector{Tuple{String, Style}}
+
+Return the status tags shown after the name of `node` — `" [dyn]"` for runtime
+dispatch, `" [GC]"` for garbage collection, and `" [inf]"` for compiler frames — with
+their styles.
+"""
+function node_tags(node::PVNode)
+    tags = Tuple{String, Style}[]
+    is_dispatch(node) && push!(tags, (" [dyn]", tstyle(:error, bold = true)))
+    is_gc(node) && push!(tags, (" [GC]", tstyle(:warning, bold = true)))
+    is_inference(node) && push!(tags, (" [inf]", tstyle(:primary, bold = true)))
+    return tags
+end
+
+"""
+    _truncate_crumb(path::String) -> String
+
+Return the breadcrumb `path` unchanged when it has at most 60 characters, and
+left-truncated with `…` otherwise.
+"""
+function _truncate_crumb(path::String)
+    length(path) <= 60 && return path
+    return "…" * path[prevind(path, end, 59):end]
+end
+
+"""
     row_name_style(node::PVNode) -> Style
 
 Return the style of the function name of `node` in the tree view: the theme error color

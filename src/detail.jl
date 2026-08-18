@@ -432,9 +432,11 @@ function info_strip(node::PVNode, delay::Float64, unit::Symbol)
     # == Name and Flags ====================================================================
 
     top = Span[Span(node_name(node), tstyle(:title, bold = true))]
-    is_dispatch(node) && push!(top, Span(" [dyn]", tstyle(:error, bold = true)))
-    is_gc(node) && push!(top, Span(" [GC]", tstyle(:warning, bold = true)))
-    is_inference(node) && push!(top, Span(" [inf]", tstyle(:primary, bold = true)))
+
+    for (tag, style) in node_tags(node)
+        push!(top, Span(tag, style))
+    end
+
     node.sf.from_c && push!(top, Span(" [C]", tstyle(:text_dim)))
     node.sf.inlined && push!(top, Span(" [inlined]", tstyle(:secondary)))
 
@@ -729,81 +731,81 @@ function render_source_panel!(m, buf::Buffer, rect::Rect; focused::Bool)
     inner = src
 
     for (i, y) in zip((d.src_scroll + 1):length(d.src_lines), inner.y:bottom(inner))
-            is_target = i == target
+        is_target = i == target
 
-            if is_target
-                set_string!(
-                    buf,
-                    inner.x,
-                    y,
-                    " "^(mx - inner.x + 1),
-                    with_selection(tstyle(:text), true)
-                )
-            end
-
-            num_style = is_target ? tstyle(:accent, bold = true) : tstyle(:text_dim)
-            x = set_string!(
+        if is_target
+            set_string!(
                 buf,
                 inner.x,
                 y,
-                lpad(string(i), gutter_w),
-                with_selection(num_style, is_target);
-                max_x = mx
+                " "^(mx - inner.x + 1),
+                with_selection(tstyle(:text), true)
             )
+        end
 
-            if costs !== nothing
-                vals, maxv, vw = costs
-                v = get(vals, i, 0)
+        num_style = is_target ? tstyle(:accent, bold = true) : tstyle(:text_dim)
+        x = set_string!(
+            buf,
+            inner.x,
+            y,
+            lpad(string(i), gutter_w),
+            with_selection(num_style, is_target);
+            max_x = mx
+        )
 
-                cell, style = if v > 0
-                    (
-                        lpad(count_cell(v, m.unit), vw),
-                        bar_style(maxv == 0 ? 0.0 : 100 * v / maxv)
-                    )
-                else
-                    (" "^vw, tstyle(:text_dim))
-                end
+        if costs !== nothing
+            vals, maxv, vw = costs
+            v = get(vals, i, 0)
 
-                x = set_string!(
-                    buf,
-                    x + 1,
-                    y,
-                    cell,
-                    with_selection(style, is_target);
-                    max_x = mx
+            cell, style = if v > 0
+                (
+                    lpad(count_cell(v, m.unit), vw),
+                    bar_style(maxv == 0 ? 0.0 : 100 * v / maxv)
                 )
+            else
+                (" "^vw, tstyle(:text_dim))
             end
 
             x = set_string!(
                 buf,
-                x,
+                x + 1,
                 y,
-                is_target ? " ▶ " : "   ",
-                with_selection(tstyle(:accent, bold = true), is_target);
+                cell,
+                with_selection(style, is_target);
                 max_x = mx
-            )
-            render_code_line!(
-                buf,
-                x,
-                y,
-                d.src_chars[i],
-                d.src_segments[i],
-                d.src_hscroll,
-                mx,
-                is_target
             )
         end
 
-        if length(d.src_lines) > inner.height
-            sb = Scrollbar(
-                length(d.src_lines),
-                inner.height,
-                d.src_scroll;
-                style = tstyle(:border),
-                thumb_style = tstyle(:accent)
-            )
-            render(sb, Rect(right(inner), inner.y, 1, inner.height), buf)
-        end
+        x = set_string!(
+            buf,
+            x,
+            y,
+            is_target ? " ▶ " : "   ",
+            with_selection(tstyle(:accent, bold = true), is_target);
+            max_x = mx
+        )
+        render_code_line!(
+            buf,
+            x,
+            y,
+            d.src_chars[i],
+            d.src_segments[i],
+            d.src_hscroll,
+            mx,
+            is_target
+        )
+    end
+
+    if length(d.src_lines) > inner.height
+        sb = Scrollbar(
+            length(d.src_lines),
+            inner.height,
+            d.src_scroll;
+            style = tstyle(:border),
+            thumb_style = tstyle(:accent)
+        )
+        render(sb, Rect(right(inner), inner.y, 1, inner.height), buf)
+    end
 
     return nothing
 end

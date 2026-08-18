@@ -495,10 +495,7 @@ function inspect_move!(m, delta::Int)
 
     n = length(fr.entries) + 1
     fr.cursor = clamp(fr.cursor + delta, 1, n)
-
-    h = max(st.calls_h, 1)
-    fr.scroll = clamp(fr.scroll, fr.cursor - h, fr.cursor - 1)
-    fr.scroll = clamp(fr.scroll, 0, max(0, n - h))
+    fr.scroll = _clamped_scroll(fr.scroll, fr.cursor, max(st.calls_h, 1), n)
 
     sync_inspect_code!(st)
     return nothing
@@ -565,9 +562,7 @@ function inspect_breadcrumb(st::InspectState)
         push!(names, def isa Method ? string(def.name) : "toplevel")
     end
 
-    path = join(names, " ▸ ")
-    length(path) <= 60 && return path
-    return "…" * path[prevind(path, end, 59):end]
+    return _truncate_crumb(join(names, " ▸ "))
 end
 
 ############################################################################################
@@ -731,8 +726,7 @@ function render_inspect!(m, buf::Buffer, rect::Rect)
 
         st.calls_h = max(inner.height, 1)
         n = length(fr.entries) + 1
-        fr.scroll = clamp(fr.scroll, fr.cursor - st.calls_h, fr.cursor - 1)
-        fr.scroll = clamp(fr.scroll, 0, max(0, n - st.calls_h))
+        fr.scroll = _clamped_scroll(fr.scroll, fr.cursor, st.calls_h, n)
 
         need_sb = n > inner.height
         mx = right(inner) - (need_sb ? 1 : 0)
