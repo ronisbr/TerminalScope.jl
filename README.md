@@ -13,7 +13,7 @@ The **TerminalScope.jl** provides an interactive terminal user interface (TUI) t
 diagnose the performance of Julia code.
 
 <p align="center">
-  <img src="./docs/src/assets/screenshots/runtime_profile.svg" width="100%" title="Runtime profile viewer">
+  <img src="./docs/src/assets/screenshots/runtime_profile.png" width="100%" title="Runtime profile viewer">
 </p>
 
 It bundles four analyses under one macro and one consistent drill-down interface:

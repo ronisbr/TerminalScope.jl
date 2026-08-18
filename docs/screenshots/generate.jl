@@ -1,13 +1,15 @@
 ## Description #############################################################################
 #
-# Generate the SVG screenshots of the documentation. Run from the repository root:
+# Generate the PNG screenshots of the documentation. Run from the repository root:
 #
-#     julia --project=. docs/screenshots.jl
+#     julia --project=docs/screenshots -e 'using Pkg; Pkg.develop(path = "."); Pkg.instantiate()'
+#     julia --project=docs/screenshots docs/screenshots/generate.jl
 #
 # The screenshots are written to docs/src/assets/screenshots/. Most of them render
 # hand-crafted, deterministic profile data over a sample workload file, so the output is
 # reproducible; the inference and type-inspector shots run the real analyses on the same
-# workload.
+# workload. The frames are rasterized with a real monospace font (see [`FONT_PATH`](@ref))
+# through the Tachikoma APNG exporter, so the images look identical in every viewer.
 #
 ############################################################################################
 
@@ -16,7 +18,10 @@ using Profile
 using Tachikoma
 using TerminalScope
 
+import ColorTypes
 import Cthulhu
+import FreeTypeAbstraction
+import PNGFiles
 import SnoopCompileCore
 
 using Base.StackTraces: StackFrame
@@ -25,9 +30,45 @@ const TS = TerminalScope
 const LCRST = FlameGraphs.LeftChildRightSiblingTrees
 const ND = FlameGraphs.NodeData
 
-const OUT_DIR = joinpath(@__DIR__, "src", "assets", "screenshots")
+const OUT_DIR = joinpath(@__DIR__, "..", "src", "assets", "screenshots")
 const WIDTH = 140
 const HEIGHT = 32
+
+# One terminal cell in pixels and the font size filling it, sized for crisp text on
+# high-density displays.
+const CELL_W = 18
+const CELL_H = 36
+const FONT_SIZE = 30
+
+"""
+    _FONT_CANDIDATES
+
+Candidate monospace fonts of [`FONT_PATH`](@ref), in order of preference.
+"""
+const _FONT_CANDIDATES = [
+    joinpath(homedir(), "Library/Fonts/JetBrainsMonoNerdFont-Regular.ttf"),
+    joinpath(homedir(), "Library/Fonts/JetBrainsMono-Regular.ttf"),
+    joinpath(homedir(), ".local/share/fonts/JetBrainsMonoNerdFont-Regular.ttf"),
+    "/System/Library/Fonts/Menlo.ttc",
+    "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf",
+    "/usr/share/fonts/TTF/DejaVuSansMono.ttf",
+]
+
+"""
+    FONT_PATH
+
+Monospace font used to rasterize the screenshots: the first installed candidate of
+[`_FONT_CANDIDATES`](@ref). Bold and italic sibling files are picked up automatically.
+Extend the candidate list when regenerating the screenshots on a machine without any of
+these fonts.
+"""
+const FONT_PATH = let idx = findfirst(isfile, _FONT_CANDIDATES)
+    idx === nothing ? "" : _FONT_CANDIDATES[idx]
+end
+
+isempty(FONT_PATH) && error(
+    "No monospace font found. Extend the _FONT_CANDIDATES list in $(@__FILE__)."
+)
 
 ############################################################################################
 #                                     Sample Workload                                      #
@@ -204,12 +245,21 @@ Dispatch every character of `text` to the model `m`.
 _type!(m, text::AbstractString) = foreach(c -> _key!(m, :char, c), text)
 
 """
-    render_svg(m, name::String; theme::Symbol = :dark) -> Nothing
+    _rgb(r::Integer, g::Integer, b::Integer) -> ColorTypes.RGB{ColorTypes.N0f8}
 
-Render one frame of the model `m` under the `theme` variant and export it to
-`OUT_DIR/name.svg`.
+Create the APNG background color from the 8-bit channels `r`, `g`, and `b`.
 """
-function render_svg(m, name::String; theme::Symbol = :dark)
+_rgb(r::Integer, g::Integer, b::Integer) =
+    ColorTypes.RGB{ColorTypes.N0f8}(r / 255, g / 255, b / 255)
+
+"""
+    render_png(m, name::String; theme::Symbol = :dark) -> Nothing
+
+Render one frame of the model `m` under the `theme` variant and rasterize it with
+[`FONT_PATH`](@ref) to `OUT_DIR/name.png` (a single-frame APNG, which every viewer
+displays as a still PNG).
+"""
+function render_png(m, name::String; theme::Symbol = :dark)
     set_theme!(theme === :dark ? TS.SCOPE_DARK_THEME : TS.SCOPE_LIGHT_THEME)
     Tachikoma.set_light_mode!(theme === :light)
 
@@ -228,22 +278,32 @@ function render_svg(m, name::String; theme::Symbol = :dark)
 
     # The background and default foreground use the design-intent SatelliteAnalysis
     # colors instead of their xterm-256 quantization, so the pages look crisp.
-    bg = theme === :dark ? "#0A1929" : "#FFFFFF"
-    fg = theme === :dark ? "#F1F5F9" : "#0A1929"
+    bg = theme === :dark ? _rgb(0x0A, 0x19, 0x29) : _rgb(0xFF, 0xFF, 0xFF)
+    fg = theme === :dark ? Tachikoma.ColorRGB(0xF1, 0xF5, 0xF9) :
+        Tachikoma.ColorRGB(0x0A, 0x19, 0x29)
 
-    export_svg(
-        joinpath(OUT_DIR, name * ".svg"),
+    path = joinpath(OUT_DIR, name * ".png")
+    Tachikoma.export_apng_from_snapshots(
+        path,
         WIDTH,
         HEIGHT,
         [cells],
         [0.0];
-        bg_color = bg,
-        fg_color = fg
+        font_path = FONT_PATH,
+        font_size = FONT_SIZE,
+        cell_w = CELL_W,
+        cell_h = CELL_H,
+        bg = bg,
+        default_fg = fg
     )
+
+    # The APNG writer stores the pixels uncompressed; re-encode the single frame as a
+    # plain compressed PNG.
+    PNGFiles.save(path, PNGFiles.load(path))
 
     set_theme!(TS.SCOPE_DARK_THEME)
     Tachikoma.set_light_mode!(false)
-    println("  generated $name.svg")
+    println("  generated $name.png")
     return nothing
 end
 
@@ -424,19 +484,19 @@ tinf = SnoopCompileCore.@snoop_inference begin
     Base.invokelatest(WorkloadFresh.propagate_orbits, collect(0.1:0.1:1.0), 50)
     Base.invokelatest(WorkloadFresh.estimate_residuals, collect(0.1:0.1:1.0))
 end
-render_svg(TS.inference_viewer(tinf), "inference_profile")
+render_png(TS.inference_viewer(tinf), "inference_profile")
 
 # == Runtime Profile =======================================================================
 
-render_svg(runtime_viewer(), "runtime_profile")
+render_png(runtime_viewer(), "runtime_profile")
 
 # == Allocation Profile ====================================================================
 
-render_svg(TS.alloc_viewer(alloc_results()), "allocation_profile")
+render_png(TS.alloc_viewer(alloc_results()), "allocation_profile")
 
 # == Invalidations =========================================================================
 
-render_svg(TS.invalidation_viewer(invalidation_trees()), "invalidations")
+render_png(TS.invalidation_viewer(invalidation_trees()), "invalidations")
 
 # == Type Inspector ========================================================================
 
@@ -446,26 +506,26 @@ mi = Cthulhu.get_specialization(
     Workload.apply_gain,
     Tuple{Dict{String, Any}, Vector{Float64}}
 )
-render_svg(TS.inspector_viewer(mi), "type_inspector")
+render_png(TS.inspector_viewer(mi), "type_inspector")
 
 # == Frame Search ==========================================================================
 
 m = runtime_viewer()
 _key!(m, :char, '/')
 _type!(m, "state")
-render_svg(m, "search_prompt")
+render_png(m, "search_prompt")
 
 _key!(m, :enter)
-render_svg(m, "search_results")
+render_png(m, "search_results")
 
 # == Help Dialog ===========================================================================
 
 m = runtime_viewer()
 _key!(m, :char, '?')
-render_svg(m, "help_dialog")
+render_png(m, "help_dialog")
 
 # == Light Theme ===========================================================================
 
-render_svg(runtime_viewer(), "light_theme"; theme = :light)
+render_png(runtime_viewer(), "light_theme"; theme = :light)
 
 println("Done.")

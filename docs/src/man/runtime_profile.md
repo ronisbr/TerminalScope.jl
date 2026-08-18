@@ -30,7 +30,7 @@ The following options are available:
 
 ## The Viewer
 
-![Runtime profile viewer](../assets/screenshots/runtime_profile.svg)
+![Runtime profile viewer](../assets/screenshots/runtime_profile.png)
 
 The header shows the total number of samples, the sampling delay, the estimated wall
 clock time, and — when the expression was run through the macro — the time spent

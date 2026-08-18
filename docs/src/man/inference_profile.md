@@ -15,7 +15,7 @@ the inference timing tree:
 The frame costs are shown as inference plus LLVM compilation times, and the tree can be
 navigated exactly like a runtime profile. The value of `expr` is discarded.
 
-![Inference profile viewer](../assets/screenshots/inference_profile.svg)
+![Inference profile viewer](../assets/screenshots/inference_profile.png)
 
 The times scale automatically from minutes down to microseconds and nanoseconds, so fast
 inference frames keep a meaningful cost instead of rounding to zero.

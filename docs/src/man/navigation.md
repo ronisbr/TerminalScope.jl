@@ -42,7 +42,7 @@ the movement keys act on the focused one.
 The status bar always shows the most important bindings of the active view, and the `?`
 dialog lists all of them:
 
-![Help dialog](../assets/screenshots/help_dialog.svg)
+![Help dialog](../assets/screenshots/help_dialog.png)
 
 ## Mouse
 
@@ -56,7 +56,7 @@ enters it, and a click closes the help dialog.
 Pressing `/` opens a search prompt in the status bar, styled after the Neovim command
 line:
 
-![Search prompt](../assets/screenshots/search_prompt.svg)
+![Search prompt](../assets/screenshots/search_prompt.png)
 
 Confirming with `Enter` collects every frame of the **whole profile tree** whose name or
 source location contains the query (case-insensitively) and navigates the viewer to the
@@ -64,7 +64,7 @@ first match — descending or ascending levels as needed, with the cursor placed
 matching row. `n` and `N` then cycle through the matches, wrapping around, while the
 status bar reports the current position:
 
-![Search match](../assets/screenshots/search_results.svg)
+![Search match](../assets/screenshots/search_results.png)
 
 `Esc` cancels the prompt without searching, and `Backspace` edits the query while it is
 open. Since the search covers the entire tree, it is the fastest way to answer "where is
@@ -88,7 +88,7 @@ or per invocation, since every function entry point accepts a `theme` keyword:
 scope_profile(g; theme = :light)
 ```
 
-![Light theme](../assets/screenshots/light_theme.svg)
+![Light theme](../assets/screenshots/light_theme.png)
 
 ### Customizing the Colors
 

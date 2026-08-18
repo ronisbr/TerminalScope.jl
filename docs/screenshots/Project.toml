@@ -1,0 +1,10 @@
+[deps]
+ColorTypes = "3da002f7-5984-5a60-b8a6-cbb66c0b333f"
+Cthulhu = "f68482b8-f384-11e8-15f7-abe071a5a75f"
+FlameGraphs = "08572546-2f56-4bcf-ba4e-bab62c3a3f89"
+FreeTypeAbstraction = "663a7486-cb36-511b-a19d-713bb74d65c9"
+PNGFiles = "f57f5aa1-a3ce-4bc8-8ab9-96f992907883"
+Profile = "9abbd945-dff8-562f-b5e8-e1ebf5ef1b79"
+SnoopCompileCore = "e2b509da-e806-4183-be48-004708413034"
+Tachikoma = "468859d6-42d8-48b7-8ad9-1d312e0e3b0a"
+TerminalScope = "bc14a303-2e4e-4aff-abc0-e6583d5a391b"

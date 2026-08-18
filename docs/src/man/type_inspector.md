@@ -31,7 +31,7 @@ scope_descend(f, Tuple{Int, Float64})
 
 ## The Viewer
 
-![Type inspector](../assets/screenshots/type_inspector.svg)
+![Type inspector](../assets/screenshots/type_inspector.png)
 
 The top pane shows the **annotated source** of the inspected method: the inferred types
 are attached to the expressions whose type is not concrete, colored by stability using

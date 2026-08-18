@@ -17,7 +17,7 @@ On top of those, a **type-instability inspector** — in the spirit of `Cthulhu.
 shows the source code annotated with the inferred types and lets the user descend through
 the call sites, directly from any profiled frame.
 
-![Runtime profile viewer](assets/screenshots/runtime_profile.svg)
+![Runtime profile viewer](assets/screenshots/runtime_profile.png)
 
 The viewers support the mouse (the wheel scrolls the hovered panel and a click selects a
 row), vim-style navigation keys, and whole-tree frame search with the `/` key.
