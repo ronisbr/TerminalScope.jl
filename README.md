@@ -58,27 +58,6 @@ the mouse (the wheel scrolls the hovered panel and a click selects a row), vim-s
 navigation keys, and whole-tree frame search with the `/` key. Press `?` inside the
 viewer for the complete set of key bindings.
 
-## Theme Customization
-
-The viewers ship with a dark theme (default) and a light one, selected with
-`TerminalScope.theme!(:dark)` or `TerminalScope.theme!(:light)`. Every color of both
-variants can be overridden through [Preferences.jl][preferences-url]:
-
-```julia
-# Colors accept an xterm-256 code (0-255) or a hex string (quantized to xterm-256).
-TerminalScope.set_theme_color!(:dark, :accent, "#38BDF8")
-TerminalScope.set_theme_color!(:light, :bg, 255)
-
-# Restore the default palette of both variants.
-TerminalScope.reset_theme_colors!()
-```
-
-The available slots are `:bg`, `:border`, `:border_focus`, `:text`, `:text_dim`,
-`:text_bright`, `:primary`, `:secondary`, `:accent`, `:success`, `:warning`, `:error`,
-`:title`, and `:selection` (the background of the row under the cursor). The overrides
-are stored in the `LocalPreferences.toml` file of the active project and take effect
-after restarting Julia.
-
 ## Documentation
 
 For more information, see the [documentation][docs-stable-url].
