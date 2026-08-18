@@ -36,9 +36,7 @@ _invalidation_outer(x::Int) = _invalidation_caller(x) * 2
     MI = SnoopCompile.MethodInvalidations
     binding = convert(Core.Binding, GlobalRef(Main, :_invalidation_binding))
     degenerate = TS.build_invalidation_tree([
-        MI(nothing, :deleting),
-        MI(binding, :rebinding),
-        MI(nothing, :unknown)
+        MI(nothing, :deleting), MI(binding, :rebinding), MI(nothing, :unknown)
     ])
     @test length(degenerate.children) == 3
     names = sort([TS.node_name(c) for c in degenerate.children])
@@ -90,7 +88,7 @@ _invalidation_outer(x::Int) = _invalidation_caller(x) * 2
             tb.buf,
             Rect(1, 1, 110, 30),
             Tachikoma.GraphicsRegion[],
-            Tachikoma.PixelSnapshot[]
+            Tachikoma.PixelSnapshot[],
         )
         tview(m, frame)
         @test find_text(tb, "Invalidations") !== nothing

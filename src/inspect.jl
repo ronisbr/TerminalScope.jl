@@ -135,7 +135,7 @@ function InspectState()
         1,
         1,
         Rect(),
-        Rect()
+        Rect(),
     )
 end
 
@@ -160,8 +160,8 @@ error color for abstract types, the warning color for small `Union`s, and the pr
 """
 function type_stability_style(@nospecialize(rt))
     is_unstable_rt(rt) || return tstyle(:primary)
-    TypedSyntax.is_small_union_or_tunion(rt) && return tstyle(:warning, bold = true)
-    return tstyle(:error, bold = true)
+    TypedSyntax.is_small_union_or_tunion(rt) && return tstyle(:warning; bold = true)
+    return tstyle(:error; bold = true)
 end
 
 """
@@ -190,7 +190,8 @@ function ansi_spans(text::AbstractString)
     italic = false
     underline = false
 
-    make_style() = fg === nothing ?
+    make_style() =
+        fg === nothing ?
         Style(; bold = bold, dim = dim, italic = italic, underline = underline) :
         Style(; fg = fg, bold = bold, dim = dim, italic = italic, underline = underline)
 
@@ -262,8 +263,10 @@ function ansi_spans(text::AbstractString)
 
                 if (k <= lastindex(text)) && (text[k] == 'm')
                     flush_seg!()
-                    params = [parse(Int, p) for p in split(text[lo:prevind(text, k)], ';')
-                        if !isempty(p)]
+                    params = [
+                        parse(Int, p) for
+                        p in split(text[lo:prevind(text, k)], ';') if !isempty(p)
+                    ]
                     apply_sgr!(params)
                 end
 
@@ -307,7 +310,8 @@ end
 Return `true` if the Cthulhu-backed inspector analysis is available, i.e., the
 `TerminalScopeCthulhuExt` extension is loaded because the user has run `using Cthulhu`.
 """
-inspector_available() = Base.get_extension(@__MODULE__, :TerminalScopeCthulhuExt) !== nothing
+inspector_available() =
+    Base.get_extension(@__MODULE__, :TerminalScopeCthulhuExt) !== nothing
 
 """
     inspect_frame(provider, mi::Core.MethodInstance[, ci]) -> InspectFrame
@@ -361,7 +365,7 @@ function _error_frame(mi::Core.MethodInstance, msg::String)
         1,
         0,
         0,
-        0
+        0,
     )
 end
 
@@ -429,9 +433,7 @@ function enter_inspect!(m, mi::Core.MethodInstance)
     if !st.loading && (m.tasks !== nothing)
         st.loading = true
         Tachikoma.spawn_task!(
-            () -> _ensure_inspector(; quiet = true),
-            m.tasks,
-            :inspector_loaded
+            () -> _ensure_inspector(; quiet = true), m.tasks, :inspector_loaded
         )
     end
 
@@ -598,11 +600,11 @@ and the descend depth into `buf` inside `rect`, mutating `buf`.
 function render_inspect_header!(m, buf::Buffer, rect::Rect)
     block = Block(;
         title = " Type Inspector ",
-        title_style = tstyle(:title, bold = true),
+        title_style = tstyle(:title; bold = true),
         title_right = " TerminalScope.jl ",
         title_right_style = tstyle(:text_dim),
         border_style = tstyle(:border),
-        box = BOX_ROUNDED
+        box = BOX_ROUNDED,
     )
     inner = render(block, rect, buf)
     ((inner.height < 1) || (inner.width < 1)) && return nothing
@@ -616,7 +618,7 @@ function render_inspect_header!(m, buf::Buffer, rect::Rect)
     mx = right(inner)
 
     x = set_string!(buf, x, y, "Method ", label; max_x = mx)
-    x = set_string!(buf, x, y, fr.label, tstyle(:accent, bold = true); max_x = mx)
+    x = set_string!(buf, x, y, fr.label, tstyle(:accent; bold = true); max_x = mx)
     x = set_string!(buf, x, y, "   Returns ", label; max_x = mx)
     set_string!(buf, x, y, fr.rt_str, fr.rt_style; max_x = mx)
 
@@ -629,8 +631,8 @@ function render_inspect_header!(m, buf::Buffer, rect::Rect)
             x,
             y,
             string(length(m.inspect.stack)),
-            tstyle(:accent, bold = true);
-            max_x = mx
+            tstyle(:accent; bold = true);
+            max_x = mx,
         )
 
         n_unstable = count(is_unstable_entry, fr.entries)
@@ -640,8 +642,8 @@ function render_inspect_header!(m, buf::Buffer, rect::Rect)
             x,
             y,
             string(n_unstable, " / ", length(fr.entries)),
-            n_unstable > 0 ? tstyle(:warning, bold = true) : tstyle(:success);
-            max_x = mx
+            n_unstable > 0 ? tstyle(:warning; bold = true) : tstyle(:success);
+            max_x = mx,
         )
     end
 
@@ -662,28 +664,30 @@ Render one call-site list row for `entry` at `(x, y)` into `buf`, clipped at col
 mutating `buf`. `selected` applies the cursor highlight.
 """
 function render_inspect_entry!(
-    buf::Buffer,
-    x::Int,
-    y::Int,
-    entry::InspectEntry,
-    selected::Bool,
-    mx::Int
+    buf::Buffer, x::Int, y::Int, entry::InspectEntry, selected::Bool, mx::Int
 )
     glyph = entry.sub ? " ↳ " : (entry.ci === nothing ? "· " : "▸ ")
-    x = set_string!(buf, x, y, glyph, with_selection(tstyle(:text_dim), selected); max_x = mx)
+    x = set_string!(
+        buf, x, y, glyph, with_selection(tstyle(:text_dim), selected); max_x = mx
+    )
 
     name_style = entry.ci === nothing ? tstyle(:text_dim) : tstyle(:text)
-    selected && (name_style = Style(; fg = name_style.fg, bold = true, dim = name_style.dim))
-    x = set_string!(buf, x, y, entry.label, with_selection(name_style, selected); max_x = mx)
+    selected &&
+        (name_style = Style(; fg = name_style.fg, bold = true, dim = name_style.dim))
+    x = set_string!(
+        buf, x, y, entry.label, with_selection(name_style, selected); max_x = mx
+    )
 
-    entry.dynamic && (x = set_string!(
-        buf,
-        x,
-        y,
-        " [dyn]",
-        with_selection(tstyle(:error, bold = true), selected);
-        max_x = mx
-    ))
+    entry.dynamic && (
+        x = set_string!(
+            buf,
+            x,
+            y,
+            " [dyn]",
+            with_selection(tstyle(:error; bold = true), selected);
+            max_x = mx,
+        )
+    )
 
     !isempty(entry.rt_str) && set_string!(
         buf,
@@ -691,7 +695,7 @@ function render_inspect_entry!(
         y,
         "::" * entry.rt_str,
         with_selection(entry.rt_style, selected);
-        max_x = mx
+        max_x = mx,
     )
 
     return nothing
@@ -719,7 +723,7 @@ function render_inspect!(m, buf::Buffer, rect::Rect)
     # focus.
     rows = if m.zoom >= ZOOM_MAX
         st.focus === :code ? [rect, Rect(rect.x, rect.y, 0, 0)] :
-            [Rect(rect.x, rect.y, 0, 0), rect]
+        [Rect(rect.x, rect.y, 0, 0), rect]
     else
         calls_want = clamp(length(fr.entries) + 3, 5, max(rect.height ÷ 2, 5))
 
@@ -741,8 +745,8 @@ function render_inspect!(m, buf::Buffer, rect::Rect)
         block = Block(;
             title = " [2] Call Sites ",
             border_style = tstyle(focused ? :border_focus : :border),
-            title_style = tstyle(:title, bold = focused),
-            box = BOX_ROUNDED
+            title_style = tstyle(:title; bold = focused),
+            box = BOX_ROUNDED,
         )
         inner = render(block, rows[2], buf)
 
@@ -763,7 +767,7 @@ function render_inspect!(m, buf::Buffer, rect::Rect)
                     inner.x,
                     y,
                     " "^(mx - inner.x + 1),
-                    with_selection(tstyle(:text), true)
+                    with_selection(tstyle(:text), true),
                 )
             end
 
@@ -774,15 +778,15 @@ function render_inspect!(m, buf::Buffer, rect::Rect)
                     y,
                     "⬑ ",
                     with_selection(tstyle(:text_dim), selected);
-                    max_x = mx
+                    max_x = mx,
                 )
                 x = set_string!(
                     buf,
                     x,
                     y,
                     fr.label,
-                    with_selection(tstyle(:secondary, bold = true), selected);
-                    max_x = mx
+                    with_selection(tstyle(:secondary; bold = true), selected);
+                    max_x = mx,
                 )
                 set_string!(
                     buf,
@@ -790,7 +794,7 @@ function render_inspect!(m, buf::Buffer, rect::Rect)
                     y,
                     "::" * fr.rt_str,
                     with_selection(fr.rt_style, selected);
-                    max_x = mx
+                    max_x = mx,
                 )
             else
                 render_inspect_entry!(buf, inner.x, y, fr.entries[i - 1], selected, mx)
@@ -800,7 +804,7 @@ function render_inspect!(m, buf::Buffer, rect::Rect)
         if isempty(fr.entries)
             msg = "No call sites"
             pos = center(inner, min(length(msg), inner.width), 1)
-            set_string!(buf, pos.x, pos.y, msg, tstyle(:text_dim, italic = true))
+            set_string!(buf, pos.x, pos.y, msg, tstyle(:text_dim; italic = true))
         end
 
         if need_sb
@@ -809,7 +813,7 @@ function render_inspect!(m, buf::Buffer, rect::Rect)
                 inner.height,
                 fr.scroll;
                 style = tstyle(:border),
-                thumb_style = tstyle(:accent)
+                thumb_style = tstyle(:accent),
             )
             render(sb, Rect(right(inner), inner.y, 1, inner.height), buf)
         end
@@ -823,8 +827,8 @@ function render_inspect!(m, buf::Buffer, rect::Rect)
         block = Block(;
             title = title,
             border_style = tstyle(focused ? :border_focus : :border),
-            title_style = tstyle(:title, bold = focused),
-            box = BOX_ROUNDED
+            title_style = tstyle(:title; bold = focused),
+            box = BOX_ROUNDED,
         )
         inner = render(block, rows[1], buf)
         st.code_h = max(inner.height, 1)
@@ -835,18 +839,19 @@ function render_inspect!(m, buf::Buffer, rect::Rect)
         if isempty(lines)
             msg = something(fr.src_error, "No code available")
             pos = center(inner, min(length(msg), inner.width), 1)
-            set_string!(buf, pos.x, pos.y, msg, tstyle(:text_dim, italic = true))
+            set_string!(buf, pos.x, pos.y, msg, tstyle(:text_dim; italic = true))
             return nothing
         end
 
         fr.code_scroll = clamp(fr.code_scroll, 0, max(0, length(lines) - inner.height))
 
         entry = selected_entry(fr)
-        target = ((entry !== nothing) && (fr.view === :source)) ?
+        target =
+            ((entry !== nothing) && (fr.view === :source)) ?
             entry.line - fr.start_line + 1 : 0
 
-        gutter_w = fr.view === :source ?
-            length(string(fr.start_line + length(lines) - 1)) + 1 : 0
+        gutter_w =
+            fr.view === :source ? length(string(fr.start_line + length(lines) - 1)) + 1 : 0
 
         mx = right(inner) - 1
         text_x = inner.x + gutter_w + (fr.view === :source ? 3 : 1)
@@ -862,33 +867,34 @@ function render_inspect!(m, buf::Buffer, rect::Rect)
                     inner.x,
                     y,
                     " "^(mx - inner.x + 1),
-                    with_selection(tstyle(:text), true)
+                    with_selection(tstyle(:text), true),
                 )
             end
 
             if fr.view === :source
-                num_style = is_target ? tstyle(:accent, bold = true) : tstyle(:text_dim)
+                num_style = is_target ? tstyle(:accent; bold = true) : tstyle(:text_dim)
                 x = set_string!(
                     buf,
                     x,
                     y,
                     lpad(string(fr.start_line + i - 1), gutter_w),
                     with_selection(num_style, is_target);
-                    max_x = mx
+                    max_x = mx,
                 )
                 x = set_string!(
                     buf,
                     x,
                     y,
                     is_target ? " ▶ " : "   ",
-                    with_selection(tstyle(:accent, bold = true), is_target);
-                    max_x = mx
+                    with_selection(tstyle(:accent; bold = true), is_target);
+                    max_x = mx,
                 )
             else
                 x += 1
             end
 
-            spans = is_target ?
+            spans =
+                is_target ?
                 Span[Span(s.content, with_selection(s.style, true)) for s in lines[i]] :
                 lines[i]
             set_spans_hclipped!(buf, x, y, spans, fr.code_hscroll, mx)
@@ -900,7 +906,7 @@ function render_inspect!(m, buf::Buffer, rect::Rect)
                 inner.height,
                 fr.code_scroll;
                 style = tstyle(:border),
-                thumb_style = tstyle(:accent)
+                thumb_style = tstyle(:accent),
             )
             render(sb, Rect(right(inner), inner.y, 1, inner.height), buf)
         end

@@ -41,8 +41,7 @@
     @test_logs (:info,) TS.set_theme_color!(:dark, :bg, 17)
     @test TS._build_theme(:dark).bg == Tachikoma.Color256(17)
     @test_logs (:info,) TS.set_theme_color!(:light, :accent, "#F59E0B")
-    @test TS._build_theme(:light).accent ==
-        Tachikoma.Color256(TS._color_code("#F59E0B"))
+    @test TS._build_theme(:light).accent == Tachikoma.Color256(TS._color_code("#F59E0B"))
     @test_logs (:info,) TS.reset_theme_colors!()
     @test TS._build_theme(:dark).bg == Tachikoma.Color256(234)
     @test TS._build_theme(:light).accent == Tachikoma.Color256(172)

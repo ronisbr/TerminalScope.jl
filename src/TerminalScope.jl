@@ -24,8 +24,8 @@ using Base.StackTraces: StackFrame
 
 Tachikoma.@tachikoma_app
 
-export @scope, scope_profile, scope_inference, scope_allocs, scope_invalidations,
-    scope_descend
+export @scope,
+    scope_profile, scope_inference, scope_allocs, scope_invalidations, scope_descend
 
 include("theme.jl")
 include("tree.jl")
@@ -42,16 +42,16 @@ include("render.jl")
 
 Package identifier of Cthulhu, used to load it on demand.
 """
-const _CTHULHU_ID =
-    Base.PkgId(Base.UUID("f68482b8-f384-11e8-15f7-abe071a5a75f"), "Cthulhu")
+const _CTHULHU_ID = Base.PkgId(Base.UUID("f68482b8-f384-11e8-15f7-abe071a5a75f"), "Cthulhu")
 
 """
     _SNOOPCOMPILE_ID
 
 Package identifier of SnoopCompile, used to load it on demand.
 """
-const _SNOOPCOMPILE_ID =
-    Base.PkgId(Base.UUID("aa65fe97-06da-5843-b5b1-d5d13cad87d2"), "SnoopCompile")
+const _SNOOPCOMPILE_ID = Base.PkgId(
+    Base.UUID("aa65fe97-06da-5843-b5b1-d5d13cad87d2"), "SnoopCompile"
+)
 
 """
     _load_backend(pkg::Base.PkgId, ext::Symbol; quiet::Bool = false) -> Bool
@@ -72,7 +72,7 @@ function _load_backend(pkg::Base.PkgId, ext::Symbol; quiet::Bool = false)
         if quiet
             redirect_stdout(devnull) do
                 redirect_stderr(devnull) do
-                    Base.require(pkg)
+                    return Base.require(pkg)
                 end
             end
         else

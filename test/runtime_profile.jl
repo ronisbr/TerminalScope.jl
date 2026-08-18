@@ -11,10 +11,7 @@
 
     tb = TestBackend(100, 30)
     frame = Tachikoma.Frame(
-        tb.buf,
-        Rect(1, 1, 100, 30),
-        Tachikoma.GraphicsRegion[],
-        Tachikoma.PixelSnapshot[]
+        tb.buf, Rect(1, 1, 100, 30), Tachikoma.GraphicsRegion[], Tachikoma.PixelSnapshot[]
     )
     tview(m, frame)
     @test find_text(tb, "Compile") !== nothing
@@ -88,7 +85,7 @@ end
             tb.buf,
             Rect(1, 1, 120, 40),
             Tachikoma.GraphicsRegion[],
-            Tachikoma.PixelSnapshot[]
+            Tachikoma.PixelSnapshot[],
         )
         tview(m, frame)
         @test find_text(tb, "Samples") !== nothing

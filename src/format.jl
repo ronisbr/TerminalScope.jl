@@ -182,9 +182,9 @@ their styles.
 """
 function node_tags(node::PVNode)
     tags = Tuple{String, Style}[]
-    is_dispatch(node) && push!(tags, (" [dyn]", tstyle(:error, bold = true)))
-    is_gc(node) && push!(tags, (" [GC]", tstyle(:warning, bold = true)))
-    is_inference(node) && push!(tags, (" [inf]", tstyle(:primary, bold = true)))
+    is_dispatch(node) && push!(tags, (" [dyn]", tstyle(:error; bold = true)))
+    is_gc(node) && push!(tags, (" [GC]", tstyle(:warning; bold = true)))
+    is_inference(node) && push!(tags, (" [inf]", tstyle(:primary; bold = true)))
     return tags
 end
 
@@ -211,7 +211,7 @@ function row_name_style(node::PVNode)
     is_dispatch(node) && return tstyle(:error)
     is_gc(node) && return tstyle(:warning)
     node.sf.from_c && return tstyle(:text_dim)
-    node.pct_total >= 50 && return tstyle(:text_bright, bold = true)
+    node.pct_total >= 50 && return tstyle(:text_bright; bold = true)
     return tstyle(:text)
 end
 
@@ -239,6 +239,6 @@ function with_selection(style::Style, selected::Bool)
         bold = style.bold,
         dim = style.dim,
         italic = style.italic,
-        underline = style.underline
+        underline = style.underline,
     )
 end

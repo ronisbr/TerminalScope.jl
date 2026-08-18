@@ -79,7 +79,7 @@ function PVNode(
     depth::Int = 0,
     parent::Union{PVNode, Nothing} = nothing,
     inference::Bool = false,
-    allocs::Int = 0
+    allocs::Int = 0,
 )
     return PVNode(
         sf,
@@ -92,7 +92,7 @@ function PVNode(
         parent,
         PVNode[],
         inference,
-        allocs
+        allocs,
     )
 end
 
@@ -138,7 +138,7 @@ function _build_node(g, parent::Union{PVNode, Nothing}, depth::Int, total::Int)
         status = nd.status,
         depth = depth,
         parent = parent,
-        inference = is_inference_frame(nd.sf)
+        inference = is_inference_frame(nd.sf),
     )
 
     for c in g
@@ -170,7 +170,8 @@ function hot_entry(root::PVNode; significance::Float64 = 0.05)
 
         # Stop at branching points: a second significant child.
         (length(node.children) >= 2) &&
-            (node.children[2].count >= significance * node.count) && break
+            (node.children[2].count >= significance * node.count) &&
+            break
 
         isempty(top.children) && break
         node = top
@@ -286,7 +287,7 @@ function _method_sig_string(m::Method)
     end
 
     r = findfirst(" @ ", s)
-    return r === nothing ? s : s[1:first(r) - 1]
+    return r === nothing ? s : s[1:(first(r) - 1)]
 end
 
 """
@@ -316,15 +317,14 @@ function _invalidation_trigger(@nospecialize(tree))
     meth = tree.method
 
     (meth isa Method) && return (
-        string(tree.reason, ' ', _method_sig_string(meth)),
-        meth.file,
-        Int(meth.line)
+        string(tree.reason, ' ', _method_sig_string(meth)), meth.file, Int(meth.line)
     )
 
     (meth isa Core.Binding) &&
         return (string(tree.reason, ' ', _binding_label(meth)), Symbol(""), 0)
 
-    label = tree.reason === :unknown ? "unattributed invalidations" :
+    label =
+        tree.reason === :unknown ? "unattributed invalidations" :
         string(tree.reason, " unknown method")
     return (label, Symbol(""), 0)
 end
@@ -399,7 +399,7 @@ function build_invalidation_tree(trees)
                 nothing,
                 false,
                 false,
-                0
+                0,
             )
             snode = PVNode(sig_sf; depth = 2, parent = tnode)
             push!(snode.children, _build_instance_pvnode(r, snode, 3))
@@ -482,15 +482,7 @@ function _demangled_sf(sf::StackFrame, cache::Dict{Symbol, Symbol})
     func = get!(() -> Symbol(demangle_name(string(sf.func))), cache, sf.func)
     (func === sf.func) && return sf
 
-    return StackFrame(
-        func,
-        sf.file,
-        sf.line,
-        sf.linfo,
-        sf.from_c,
-        sf.inlined,
-        sf.pointer
-    )
+    return StackFrame(func, sf.file, sf.line, sf.linfo, sf.from_c, sf.inlined, sf.pointer)
 end
 
 """
@@ -508,7 +500,7 @@ function _alloc_child!(
     index::Dict{Tuple{UInt64, Any}, PVNode},
     parent::PVNode,
     @nospecialize(key),
-    sf::StackFrame
+    sf::StackFrame,
 )
     k = (objectid(parent), key)
     child = get(index, k, nothing)
@@ -612,7 +604,8 @@ function _collapse_alloc_wrappers!(node::PVNode)
             c = node.children[i]
 
             # Replace a pure `kwcall` wrapper by its single callee.
-            if (node_name(c) == "kwcall") && (length(c.children) == 1) &&
+            if (node_name(c) == "kwcall") &&
+                (length(c.children) == 1) &&
                 (c.children[1].count == c.count)
                 g = c.children[1]
                 g.parent = node
@@ -622,7 +615,8 @@ function _collapse_alloc_wrappers!(node::PVNode)
             end
 
             # Merge a same-named single child (the keyword body) into `c`.
-            if (length(c.children) == 1) && (c.children[1].count == c.count) &&
+            if (length(c.children) == 1) &&
+                (c.children[1].count == c.count) &&
                 (node_name(c.children[1]) == node_name(c))
                 g = c.children[1]
                 c.children = g.children

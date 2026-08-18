@@ -13,8 +13,19 @@ Each slot of each variant can be overridden with a Preferences.jl preference nam
 `"<variant>_<slot>"`, e.g. `"dark_bg"` (see [`set_theme_color!`](@ref)).
 """
 const THEME_SLOTS = (
-    :bg, :border, :border_focus, :text, :text_dim, :text_bright, :primary, :secondary,
-    :accent, :success, :warning, :error, :title
+    :bg,
+    :border,
+    :border_focus,
+    :text,
+    :text_dim,
+    :text_bright,
+    :primary,
+    :secondary,
+    :accent,
+    :success,
+    :warning,
+    :error,
+    :title,
 )
 
 """
@@ -56,7 +67,7 @@ const THEME_DEFAULTS = Dict{Symbol, NTuple{13, Int}}(
         136,  # warning: dark gold, kept distinct from the accent.
         160,  # error: red #DC2626.
         172,  # title: amber #D97706.
-    )
+    ),
 )
 
 """
@@ -202,26 +213,25 @@ julia> TerminalScope.set_theme_color!(:light, :bg, 255)
 ```
 """
 function set_theme_color!(
-    variant::Symbol,
-    slot::Symbol,
-    color::Union{Integer, AbstractString}
+    variant::Symbol, slot::Symbol, color::Union{Integer, AbstractString}
 )
     haskey(THEME_DEFAULTS, variant) || throw(
-        ArgumentError("Unknown theme `:$variant`. The options are `:dark` and `:light`.")
+        ArgumentError("Unknown theme `:$variant`. The options are `:dark` and `:light`."),
     )
 
     (slot in _PREF_SLOTS) || throw(
         ArgumentError(
             "Unknown theme slot `:$slot`. The options are " *
-                join((":$s" for s in _PREF_SLOTS), ", ") * "."
-        )
+            join((":$s" for s in _PREF_SLOTS), ", ") *
+            ".",
+        ),
     )
 
     (_color_code(color) === nothing) && throw(
         ArgumentError(
             "Invalid color `$(repr(color))`. Use an xterm-256 code (0-255) or a hex " *
-                "string like \"#F59E0B\"."
-        )
+            "string like \"#F59E0B\".",
+        ),
     )
 
     Preferences.set_preferences!(@__MODULE__, "$(variant)_$(slot)" => color; force = true)
@@ -259,7 +269,9 @@ Return the theme of the `variant`, either `:dark` or `:light`, throwing an
 function _theme_for(variant::Symbol)
     (variant === :dark) && return SCOPE_DARK_THEME
     (variant === :light) && return SCOPE_LIGHT_THEME
-    throw(ArgumentError("Unknown theme `:$variant`. The options are `:dark` and `:light`."))
+    return throw(
+        ArgumentError("Unknown theme `:$variant`. The options are `:dark` and `:light`.")
+    )
 end
 
 """

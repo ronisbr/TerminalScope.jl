@@ -11,8 +11,15 @@ module TerminalScopeCthulhuExt
 using Cthulhu
 using TerminalScope
 
-using TerminalScope: InspectEntry, InspectFrame, _error_frame, _mi_label, ansi_spans,
-    is_unstable_rt, sync_inspect_code!, type_stability_style
+using TerminalScope:
+    InspectEntry,
+    InspectFrame,
+    _error_frame,
+    _mi_label,
+    ansi_spans,
+    is_unstable_rt,
+    sync_inspect_code!,
+    type_stability_style
 
 const Logging = TerminalScope.Logging
 const Tachikoma = TerminalScope.Tachikoma
@@ -41,7 +48,9 @@ Build the call-site list entry for the Cthulhu call information `info` of the ca
 `cs` at the absolute source `line`. `sub` marks entries that are one target of a
 union-split call site.
 """
-function _callsite_entry(@nospecialize(info), cs::Cthulhu.Callsite, line::Int; sub::Bool = false)
+function _callsite_entry(
+    @nospecialize(info), cs::Cthulhu.Callsite, line::Int; sub::Bool = false
+)
     rt = try
         Logging.with_logger(() -> Cthulhu.get_rt(info), Logging.NullLogger())
     catch
@@ -54,7 +63,7 @@ function _callsite_entry(@nospecialize(info), cs::Cthulhu.Callsite, line::Int; s
         sprint(
             show,
             Cthulhu.Callsite(cs.id, info, cs.head);
-            context = :displaysize => (24, 1000)
+            context = :displaysize => (24, 1000),
         )
     catch
         "call"
@@ -71,7 +80,7 @@ function _callsite_entry(@nospecialize(info), cs::Cthulhu.Callsite, line::Int; s
         _callsite_ci(info),
         info isa Cthulhu.RTCallInfo,
         is_unstable_rt(rt),
-        sub
+        sub,
     )
 end
 
@@ -108,7 +117,7 @@ error message.
 function TerminalScope.inspect_frame(
     provider::Cthulhu.DefaultProvider,
     mi::Core.MethodInstance,
-    ci::Union{Core.CodeInstance, Nothing} = nothing
+    ci::Union{Core.CodeInstance, Nothing} = nothing,
 )
     return Logging.with_logger(Logging.NullLogger()) do
         local result
@@ -150,11 +159,7 @@ function TerminalScope.inspect_frame(
 
         try
             tsn, _ = TypedSyntax.tsn_and_mappings(
-                mi,
-                result.src,
-                result.rt;
-                warn = false,
-                strip_macros = true
+                mi, result.src, result.rt; warn = false, strip_macros = true
             )
             tsn === nothing && error("no source")
 
@@ -167,7 +172,7 @@ function TerminalScope.inspect_frame(
                 tsn;
                 iswarn = true,
                 hide_type_stable = true,
-                with_linenumber = false
+                with_linenumber = false,
             )
             code_lines = ansi_spans(String(take!(iob)))
         catch
@@ -197,7 +202,7 @@ function TerminalScope.inspect_frame(
             min(2, length(entries) + 1),
             0,
             0,
-            0
+            0,
         )
     end
 end
@@ -266,7 +271,7 @@ PrecompileTools.@setup_workload begin
                 tb.buf,
                 Tachikoma.Rect(1, 1, 100, 30),
                 Tachikoma.GraphicsRegion[],
-                Tachikoma.PixelSnapshot[]
+                Tachikoma.PixelSnapshot[],
             )
             Tachikoma.view(m, frame)
             Tachikoma.update!(m, Tachikoma.KeyEvent(:down))

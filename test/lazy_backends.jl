@@ -14,7 +14,7 @@
     """
     out = read(
         `$(Base.julia_cmd()) --startup-file=no --project=$(Base.active_project()) -e $code`,
-        String
+        String,
     )
     @test strip(out) == "false"
 
@@ -26,7 +26,7 @@
     """
     out = read(
         `$(Base.julia_cmd()) --startup-file=no --project=$(Base.active_project()) -e $code`,
-        String
+        String,
     )
     @test strip(out) == "true"
 
@@ -63,7 +63,9 @@
     # The full spawn path: a load task completes through the queue.
     m3 = make_model()
     m3.inspect.loading = true
-    Tachikoma.spawn_task!(() -> TS._ensure_inspector(; quiet = true), m3.tasks, :inspector_loaded)
+    Tachikoma.spawn_task!(
+        () -> TS._ensure_inspector(; quiet = true), m3.tasks, :inspector_loaded
+    )
     evt = take!(m3.tasks.channel)
     @test evt isa Tachikoma.TaskEvent
     @test evt.id === :inspector_loaded

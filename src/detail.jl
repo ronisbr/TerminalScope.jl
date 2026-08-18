@@ -58,7 +58,7 @@ function DetailState()
         0,
         1,
         1,
-        nothing
+        nothing,
     )
 end
 
@@ -237,7 +237,7 @@ const _ANSI_COLOR_INDEX = Dict{Symbol, Int}(
     :bright_blue => 12,
     :bright_magenta => 13,
     :bright_cyan => 14,
-    :bright_white => 15
+    :bright_white => 15,
 )
 
 # Cache of the resolved face styles, keyed by the annotation face value.
@@ -299,7 +299,7 @@ function highlight_lines(content::String, nlines::Int)
 
             id = get!(face_ids, a.value) do
                 push!(faces, a.value)
-                UInt16(length(faces))
+                return UInt16(length(faces))
             end
 
             # `Base.view` must be qualified because `view` is the Tachikoma render
@@ -316,7 +316,8 @@ function highlight_lines(content::String, nlines::Int)
     seg_lo = 1
     seg_fid = UInt16(0)
 
-    flush_segment!() = (col >= seg_lo) &&
+    flush_segment!() =
+        (col >= seg_lo) &&
         push!(cur, (seg_lo:col, face_style(seg_fid == 0 ? nothing : faces[seg_fid])))
 
     for i in eachindex(content)
@@ -366,9 +367,7 @@ function center_source!(d::DetailState, height::Int)
     node = d.node
     node === nothing && return nothing
     d.src_scroll = clamp(
-        node.sf.line - 1 - height ÷ 2,
-        0,
-        max(0, length(d.src_lines) - height)
+        node.sf.line - 1 - height ÷ 2, 0, max(0, length(d.src_lines) - height)
     )
     return nothing
 end
@@ -438,11 +437,11 @@ to estimate wall-clock times.
 function info_strip(node::PVNode, delay::Float64, unit::Symbol)
     label = tstyle(:text_dim)
     value = tstyle(:text)
-    accent = tstyle(:accent, bold = true)
+    accent = tstyle(:accent; bold = true)
 
     # == Name and Flags ====================================================================
 
-    top = Span[Span(node_name(node), tstyle(:title, bold = true))]
+    top = Span[Span(node_name(node), tstyle(:title; bold = true))]
 
     for (tag, style) in node_tags(node)
         push!(top, Span(tag, style))
@@ -452,7 +451,7 @@ function info_strip(node::PVNode, delay::Float64, unit::Symbol)
     node.sf.inlined && push!(top, Span(" [inlined]", tstyle(:secondary)))
 
     loc = node_location(node)
-    !isempty(loc) && push!(top, Span("  " * loc, tstyle(:text_dim, italic = true)))
+    !isempty(loc) && push!(top, Span("  " * loc, tstyle(:text_dim; italic = true)))
 
     pkg = node_package(node)
     (pkg !== nothing) && push!(top, Span(" [$pkg]", package_style()))
@@ -475,15 +474,9 @@ function info_strip(node::PVNode, delay::Float64, unit::Symbol)
         push!(costs, Span(")   Self ", label), Span(format_count(node.self), value))
     else
         push!(
-            costs,
-            Span("Inclusive ", label),
-            Span(format_seconds(node.count / 1e9), accent)
+            costs, Span("Inclusive ", label), Span(format_seconds(node.count / 1e9), accent)
         )
-        push!(
-            costs,
-            Span("   Self ", label),
-            Span(format_seconds(node.self / 1e9), value)
-        )
+        push!(costs, Span("   Self ", label), Span(format_seconds(node.self / 1e9), value))
     end
 
     push!(costs, Span("   Total ", label), Span(format_pct(node.pct_total), accent))
@@ -502,8 +495,7 @@ function info_strip(node::PVNode, delay::Float64, unit::Symbol)
             ""
         end
 
-        !isempty(sig) &&
-            push!(rows, Span[Span("Method ", label), Span(sig, value)])
+        !isempty(sig) && push!(rows, Span[Span("Method ", label), Span(sig, value)])
     end
 
     return rows
@@ -530,12 +522,7 @@ Render `spans` at `(x, y)` into `buf`, skipping the first `hskip` display column
 clipping at column `mx`. Return the column after the last drawn character.
 """
 function set_spans_hclipped!(
-    buf::Buffer,
-    x::Int,
-    y::Int,
-    spans::Vector{Span},
-    hskip::Int,
-    mx::Int
+    buf::Buffer, x::Int, y::Int, spans::Vector{Span}, hskip::Int, mx::Int
 )
     col = 0
 
@@ -593,7 +580,7 @@ function render_code_line!(
     segments::Vector{Tuple{UnitRange{Int}, Style}},
     hskip::Int,
     mx::Int,
-    selected::Bool
+    selected::Bool,
 )
     isempty(chars) && return nothing
 
@@ -603,12 +590,7 @@ function render_code_line!(
         hi = min(last(rg), length(chars))
         (lo > hi) && continue
         x = set_string!(
-            buf,
-            x,
-            y,
-            String(chars[lo:hi]),
-            with_selection(style, selected);
-            max_x = mx
+            buf, x, y, String(chars[lo:hi]), with_selection(style, selected); max_x = mx
         )
     end
 
@@ -692,8 +674,8 @@ function render_source_panel!(m, buf::Buffer, rect::Rect; focused::Bool)
         title_right = title_right,
         title_right_style = package_style(),
         border_style = tstyle(focused ? :border_focus : :border),
-        title_style = tstyle(:title, bold = focused),
-        box = BOX_ROUNDED
+        title_style = tstyle(:title; bold = focused),
+        box = BOX_ROUNDED,
     )
     inner = render(block, rect, buf)
     ((inner.height < 1) || (inner.width < 1)) && return nothing
@@ -711,13 +693,7 @@ function render_source_panel!(m, buf::Buffer, rect::Rect; focused::Bool)
     end
 
     if strip_h <= inner.height
-        set_string!(
-            buf,
-            inner.x,
-            inner.y + strip_h - 1,
-            "─"^inner.width,
-            tstyle(:border)
-        )
+        set_string!(buf, inner.x, inner.y + strip_h - 1, "─"^inner.width, tstyle(:border))
     end
 
     src = Rect(inner.x, inner.y + strip_h, inner.width, max(inner.height - strip_h, 0))
@@ -728,7 +704,7 @@ function render_source_panel!(m, buf::Buffer, rect::Rect; focused::Bool)
     if d.src_error !== nothing
         msg = d.src_error
         pos = center(src, min(length(msg), src.width), 1)
-        set_string!(buf, pos.x, pos.y, msg, tstyle(:text_dim, italic = true))
+        set_string!(buf, pos.x, pos.y, msg, tstyle(:text_dim; italic = true))
         return nothing
     end
 
@@ -749,22 +725,18 @@ function render_source_panel!(m, buf::Buffer, rect::Rect; focused::Bool)
 
         if is_target
             set_string!(
-                buf,
-                inner.x,
-                y,
-                " "^(mx - inner.x + 1),
-                with_selection(tstyle(:text), true)
+                buf, inner.x, y, " "^(mx - inner.x + 1), with_selection(tstyle(:text), true)
             )
         end
 
-        num_style = is_target ? tstyle(:accent, bold = true) : tstyle(:text_dim)
+        num_style = is_target ? tstyle(:accent; bold = true) : tstyle(:text_dim)
         x = set_string!(
             buf,
             inner.x,
             y,
             lpad(string(i), gutter_w),
             with_selection(num_style, is_target);
-            max_x = mx
+            max_x = mx,
         )
 
         if costs !== nothing
@@ -772,21 +744,13 @@ function render_source_panel!(m, buf::Buffer, rect::Rect; focused::Bool)
             v = get(vals, i, 0)
 
             cell, style = if v > 0
-                (
-                    lpad(count_cell(v, m.unit), vw),
-                    bar_style(maxv == 0 ? 0.0 : 100 * v / maxv)
-                )
+                (lpad(count_cell(v, m.unit), vw), bar_style(maxv == 0 ? 0.0 : 100 * v / maxv))
             else
                 (" "^vw, tstyle(:text_dim))
             end
 
             x = set_string!(
-                buf,
-                x + 1,
-                y,
-                cell,
-                with_selection(style, is_target);
-                max_x = mx
+                buf, x + 1, y, cell, with_selection(style, is_target); max_x = mx
             )
         end
 
@@ -795,18 +759,11 @@ function render_source_panel!(m, buf::Buffer, rect::Rect; focused::Bool)
             x,
             y,
             is_target ? " ▶ " : "   ",
-            with_selection(tstyle(:accent, bold = true), is_target);
-            max_x = mx
+            with_selection(tstyle(:accent; bold = true), is_target);
+            max_x = mx,
         )
         render_code_line!(
-            buf,
-            x,
-            y,
-            d.src_chars[i],
-            d.src_segments[i],
-            d.src_hscroll,
-            mx,
-            is_target
+            buf, x, y, d.src_chars[i], d.src_segments[i], d.src_hscroll, mx, is_target
         )
     end
 
@@ -816,7 +773,7 @@ function render_source_panel!(m, buf::Buffer, rect::Rect; focused::Bool)
             inner.height,
             d.src_scroll;
             style = tstyle(:border),
-            thumb_style = tstyle(:accent)
+            thumb_style = tstyle(:accent),
         )
         render(sb, Rect(right(inner), inner.y, 1, inner.height), buf)
     end

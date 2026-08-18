@@ -169,7 +169,7 @@ function _viewer(
     unit::Symbol,
     delay::Float64,
     compile::Union{CompileStats, Nothing},
-    inference::Int
+    inference::Int,
 )
     current = hot_entry(root)
     rows = level_rows(current)
@@ -204,16 +204,14 @@ function _viewer(
         nothing,
         "",
         PVNode[],
-        0
+        0,
     )
 
-    m.tasks = Tachikoma.TaskQueue(;
-        on_ready = () -> begin
-            w = m.wake[]
-            (w === nothing) || w()
-            nothing
-        end
-    )
+    m.tasks = Tachikoma.TaskQueue(; on_ready = () -> begin
+        w = m.wake[]
+        (w === nothing) || w()
+        nothing
+    end)
 
     return m
 end
@@ -727,8 +725,10 @@ function _search_matches(root::PVNode, query::String)
     q = lowercase(query)
 
     function visit(node::PVNode)
-        if !is_tree_root(node) && (occursin(q, lowercase(node_name(node))) ||
-            occursin(q, lowercase(node_location(node))))
+        if !is_tree_root(node) && (
+            occursin(q, lowercase(node_name(node))) ||
+            occursin(q, lowercase(node_location(node)))
+        )
             push!(matches, node)
         end
 
@@ -895,8 +895,7 @@ function _mouse_inspect!(m::ProfileViewer, evt::MouseEvent, press::Bool, wheel::
             row = fr.scroll + (evt.y - st.calls_rect.y) + 1
 
             if 1 <= row <= length(fr.entries) + 1
-                (row == fr.cursor) ? inspect_descend!(m) :
-                    inspect_move!(m, row - fr.cursor)
+                (row == fr.cursor) ? inspect_descend!(m) : inspect_move!(m, row - fr.cursor)
             end
         end
     elseif _rect_contains(st.code_rect, evt.x, evt.y)
@@ -906,4 +905,3 @@ function _mouse_inspect!(m::ProfileViewer, evt::MouseEvent, press::Bool, wheel::
 
     return nothing
 end
-

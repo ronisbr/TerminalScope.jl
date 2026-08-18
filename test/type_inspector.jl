@@ -54,10 +54,7 @@
     # Rendering.
     tb = TestBackend(110, 30)
     frame = Tachikoma.Frame(
-        tb.buf,
-        Rect(1, 1, 110, 30),
-        Tachikoma.GraphicsRegion[],
-        Tachikoma.PixelSnapshot[]
+        tb.buf, Rect(1, 1, 110, 30), Tachikoma.GraphicsRegion[], Tachikoma.PixelSnapshot[]
     )
     tview(m, frame)
     @test find_text(tb, "Type Inspector") !== nothing
@@ -86,8 +83,8 @@
             mouse_press,
             false,
             false,
-            false
-        )
+            false,
+        ),
     )
     @test fr.cursor == cur0 + 1
     update!(
@@ -99,8 +96,8 @@
             mouse_press,
             false,
             false,
-            false
-        )
+            false,
+        ),
     )
     @test st.focus === :code
     update!(m, KeyEvent(:char, '2'))
@@ -159,15 +156,7 @@
     update!(m2, KeyEvent(:backspace))
 
     node = TS.selected_row(m2)
-    node.sf = StackFrame(
-        :_inspect_caller,
-        Symbol(@__FILE__),
-        1,
-        mi,
-        false,
-        false,
-        0
-    )
+    node.sf = StackFrame(:_inspect_caller, Symbol(@__FILE__), 1, mi, false, false, 0)
     update!(m2, KeyEvent(:char, 'i'))
     @test m2.mode == :inspect
     @test !m2.inspect.standalone

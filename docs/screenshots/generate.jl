@@ -83,7 +83,8 @@ installed font.
 function _ensure_iosevka()
     all(f -> isfile(joinpath(_FONTS_DIR, f)), _IOSEVKA_FACES) && return nothing
 
-    url = "https://github.com/be5invis/Iosevka/releases/download/" *
+    url =
+        "https://github.com/be5invis/Iosevka/releases/download/" *
         "v$(_IOSEVKA_VERSION)/PkgTTF-Iosevka-$(_IOSEVKA_VERSION).zip"
 
     try
@@ -144,9 +145,8 @@ Width [px] of one terminal cell: the glyph advance of [`FONT_PATH`](@ref) at
 """
 const CELL_W = _FONT_CHOICE[2]
 
-isempty(FONT_PATH) && error(
-    "No monospace font found. Extend the _FONT_CANDIDATES list in $(@__FILE__)."
-)
+isempty(FONT_PATH) &&
+    error("No monospace font found. Extend the _FONT_CANDIDATES list in $(@__FILE__).")
 
 ############################################################################################
 #                                     Sample Workload                                      #
@@ -294,7 +294,7 @@ function _brighten_ansi(cells::Vector{Tachikoma.Cell})
             s.italic,
             s.underline,
             s.strikethrough,
-            s.hyperlink
+            s.hyperlink,
         )
         return Tachikoma.Cell(cell.char, style, cell.suffix)
     end
@@ -346,7 +346,7 @@ function render_png(m, name::String; theme::Symbol = :dark)
         tb.buf,
         Rect(1, 1, WIDTH, HEIGHT),
         Tachikoma.GraphicsRegion[],
-        Tachikoma.PixelSnapshot[]
+        Tachikoma.PixelSnapshot[],
     )
     Tachikoma.view(m, frame)
 
@@ -358,7 +358,8 @@ function render_png(m, name::String; theme::Symbol = :dark)
     # navy-and-amber theme without reading as blue; the default foreground uses the
     # design-intent SatelliteAnalysis text color.
     bg = theme === :dark ? _rgb(0x0D, 0x11, 0x17) : _rgb(0xFF, 0xFF, 0xFF)
-    fg = theme === :dark ? Tachikoma.ColorRGB(0xF1, 0xF5, 0xF9) :
+    fg =
+        theme === :dark ? Tachikoma.ColorRGB(0xF1, 0xF5, 0xF9) :
         Tachikoma.ColorRGB(0x0A, 0x19, 0x29)
 
     path = joinpath(OUT_DIR, name * ".png")
@@ -373,7 +374,7 @@ function render_png(m, name::String; theme::Symbol = :dark)
         cell_w = CELL_W,
         cell_h = CELL_H,
         bg = bg,
-        default_fg = fg
+        default_fg = fg,
     )
 
     # The APNG writer stores the pixels uncompressed; re-encode the single frame as a
@@ -405,16 +406,14 @@ function runtime_viewer()
     integ = LCRST.addchild(prop, ND(_sf("integrate_state", WFILE, 28), 0x00, 1:490))
     rk4 = LCRST.addchild(integ, ND(_sf("rk4_step", WFILE, 34), 0x00, 1:470))
     dyn = LCRST.addchild(
-        rk4,
-        ND(_sf("dynamics", WFILE, 36), FlameGraphs.runtime_dispatch, 1:380)
+        rk4, ND(_sf("dynamics", WFILE, 36), FlameGraphs.runtime_dispatch, 1:380)
     )
     LCRST.addchild(dyn, ND(_sf("sin", "special/trig.jl", 29), 0x00, 1:200))
     LCRST.addchild(dyn, ND(_sf("perturbation", WFILE, 38), 0x00, 201:340))
     LCRST.addchild(rk4, ND(_sf("+", "promotion.jl", 425), 0x00, 381:440))
 
     est = LCRST.addchild(
-        sim,
-        ND(_sf("estimate_residuals", WFILE, 41), FlameGraphs.runtime_dispatch, 521:700)
+        sim, ND(_sf("estimate_residuals", WFILE, 41), FlameGraphs.runtime_dispatch, 521:700)
     )
     LCRST.addchild(est, ND(_sf("mean_state", WFILE, 44), 0x00, 521:600))
     LCRST.addchild(est, ND(_sf("materialize", "broadcast.jl", 892), 0x00, 601:670))
@@ -433,7 +432,11 @@ function runtime_viewer()
 
     LCRST.addchild(
         sim,
-        ND(_sf("jl_gc_small_alloc", "gc.c", 0; from_c = true), FlameGraphs.gc_event, 951:975)
+        ND(
+            _sf("jl_gc_small_alloc", "gc.c", 0; from_c = true),
+            FlameGraphs.gc_event,
+            951:975,
+        ),
     )
 
     return TS.ProfileViewer(root; compile = TS.CompileStats(3.42, 0.87, 0.12))
@@ -452,11 +455,23 @@ buffer with many small allocations of several types.
 function alloc_results()
     st_sim = [_sf("run_simulation", WFILE, 9), _sf("eval", "boot.jl", 430)]
     st_prop = [_sf("propagate_orbits", WFILE, 17), st_sim...]
-    st_integ = [_sf("integrate_state", WFILE, 28), _sf("propagate_orbits", WFILE, 20), st_sim...]
-    st_eph = [_sf("split", "strings/util.jl", 608), _sf("load_ephemeris", WFILE, 48), st_sim...]
+    st_integ = [
+        _sf("integrate_state", WFILE, 28), _sf("propagate_orbits", WFILE, 20), st_sim...
+    ]
+    st_eph = [
+        _sf("split", "strings/util.jl", 608), _sf("load_ephemeris", WFILE, 48), st_sim...
+    ]
     st_sum = [_sf("string", "strings/io.jl", 189), _sf("summarize", WFILE, 59), st_sim...]
-    st_est = [_sf("materialize", "broadcast.jl", 892), _sf("estimate_residuals", WFILE, 41), st_sim...]
-    st_att = [_sf("materialize", "broadcast.jl", 892), _sf("interpolate_attitude", WFILE, 51), st_sim...]
+    st_est = [
+        _sf("materialize", "broadcast.jl", 892),
+        _sf("estimate_residuals", WFILE, 41),
+        st_sim...,
+    ]
+    st_att = [
+        _sf("materialize", "broadcast.jl", 892),
+        _sf("interpolate_attitude", WFILE, 51),
+        st_sim...,
+    ]
 
     alloc(T, st, size) = Profile.Allocs.Alloc(T, st, size, C_NULL, UInt64(0))
     allocs = [alloc(Vector{Float64}, st_prop, 80_000)]
@@ -525,27 +540,25 @@ function invalidation_trees()
         (
             method = which(W.dynamics, (Float64,)),
             reason = :inserting,
-            backedges = Any[
-                InstNode(
-                    mi_dyn,
-                    [InstNode(mi_rk4, [InstNode(mi_integ, [InstNode(mi_prop, InstNode[])])])]
-                )
-            ],
-            mt_backedges = Any[
-                (Tuple{typeof(W.dynamics), Float64}, InstNode(mi_rk4, InstNode[]))
-            ]
+            backedges = Any[InstNode(
+                mi_dyn,
+                [InstNode(mi_rk4, [InstNode(mi_integ, [InstNode(mi_prop, InstNode[])])])],
+            )],
+            mt_backedges = Any[(
+                Tuple{typeof(W.dynamics), Float64}, InstNode(mi_rk4, InstNode[])
+            )],
         ),
         (
             method = which(W.perturbation, (Float64,)),
             reason = :inserting,
             backedges = Any[InstNode(mi_pert, [InstNode(mi_dyn, InstNode[])])],
-            mt_backedges = Any[]
+            mt_backedges = Any[],
         ),
         (
             method = which(W.mean_state, (Vector{Float64},)),
             reason = :deleting,
             backedges = Any[InstNode(mi_mean, [InstNode(mi_est, InstNode[])])],
-            mt_backedges = Any[]
+            mt_backedges = Any[],
         ),
     ]
 end
@@ -582,8 +595,7 @@ render_png(TS.invalidation_viewer(invalidation_trees()), "invalidations")
 config = Dict{String, Any}("gain" => 2.0, "offset" => 0.5)
 Base.invokelatest(Workload.apply_gain, config, [1.0, 2.0])
 mi = Cthulhu.get_specialization(
-    Workload.apply_gain,
-    Tuple{Dict{String, Any}, Vector{Float64}}
+    Workload.apply_gain, Tuple{Dict{String, Any}, Vector{Float64}}
 )
 render_png(TS.inspector_viewer(mi), "type_inspector")
 

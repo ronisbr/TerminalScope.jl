@@ -2,8 +2,8 @@ using Documenter
 using TerminalScope
 
 # Disable the remote source links when building outside a git checkout.
-remotes_kwargs = isdir(joinpath(@__DIR__, "..", ".git")) ?
-    NamedTuple() : (remotes = nothing,)
+remotes_kwargs =
+    isdir(joinpath(@__DIR__, "..", ".git")) ? NamedTuple() : (remotes = nothing,)
 
 makedocs(;
     remotes_kwargs...,

@@ -73,9 +73,7 @@ the `q` key.
     (**Default**: `DEFAULT_THEME[]`)
 """
 function scope_profile(
-    g;
-    compile::Union{CompileStats, Nothing} = nothing,
-    theme::Symbol = DEFAULT_THEME[]
+    g; compile::Union{CompileStats, Nothing} = nothing, theme::Symbol = DEFAULT_THEME[]
 )
     _run_app(ProfileViewer(g; compile = compile); theme = theme)
     return nothing
@@ -97,8 +95,7 @@ available.
     (**Default**: `DEFAULT_THEME[]`)
 """
 function scope_profile(;
-    compile::Union{CompileStats, Nothing} = nothing,
-    theme::Symbol = DEFAULT_THEME[]
+    compile::Union{CompileStats, Nothing} = nothing, theme::Symbol = DEFAULT_THEME[]
 )
     g = FlameGraphs.flamegraph()
 
@@ -157,7 +154,7 @@ function scope_allocs(results = Profile.Allocs.fetch(); theme::Symbol = DEFAULT_
     if isempty(results.allocs)
         _scope_warn(
             "The allocation profile is empty. Run `@scope allocs expr` or " *
-            "`Profile.Allocs.@profile expr` first."
+            "`Profile.Allocs.@profile expr` first.",
         )
         return nothing
     end
@@ -183,10 +180,12 @@ function _scope_allocs_expansion(opts, @nospecialize(expr))
         elseif (a isa Expr) && (a.head === :(=)) && (a.args[1] === :warmup)
             warmup = a.args[2]
         else
-            throw(ArgumentError(
-                "Unknown option `$a`. The options of `@scope allocs` are " *
-                "`sample_rate = value` and `warmup = bool`."
-            ))
+            throw(
+                ArgumentError(
+                    "Unknown option `$a`. The options of `@scope allocs` are " *
+                    "`sample_rate = value` and `warmup = bool`.",
+                ),
+            )
         end
     end
 
@@ -246,7 +245,7 @@ function scope_invalidations(@nospecialize(invs); theme::Symbol = DEFAULT_THEME[
     if !(invs isa AbstractVector) && !_ensure_snoopcompile()
         _scope_warn(
             "Could not load SnoopCompile, which is required to organize raw " *
-            "invalidation data. The raw data is returned unchanged."
+            "invalidation data. The raw data is returned unchanged.",
         )
         return invs
     end
@@ -308,10 +307,12 @@ See also [`@scope`](@ref).
 function scope_descend(
     @nospecialize(f),
     @nospecialize(types::Type{<:Tuple} = Tuple{});
-    theme::Symbol = DEFAULT_THEME[]
+    theme::Symbol = DEFAULT_THEME[],
 )
     if !_ensure_inspector()
-        _scope_warn("Could not load Cthulhu, which the type-instability inspector requires.")
+        _scope_warn(
+            "Could not load Cthulhu, which the type-instability inspector requires."
+        )
         return nothing
     end
 
@@ -325,7 +326,6 @@ function scope_descend(
     _run_app(inspector_viewer(mi); theme = theme)
     return nothing
 end
-
 
 """
     _scope_profile_expansion(opts, expr) -> Expr
@@ -344,18 +344,20 @@ function _scope_profile_expansion(opts, @nospecialize(expr))
         elseif (a isa Expr) && (a.head === :(=)) && (a.args[1] === :n)
             n = a.args[2]
         else
-            throw(ArgumentError(
-                "Unknown option `$a`. The options of `@scope` are `delay = seconds` " *
-                "and `n = samples`."
-            ))
+            throw(
+                ArgumentError(
+                    "Unknown option `$a`. The options of `@scope` are `delay = seconds` " *
+                    "and `n = samples`.",
+                ),
+            )
         end
     end
 
     kws = Any[]
     (delay !== nothing) && push!(kws, Expr(:kw, :delay, esc(delay)))
     (n !== nothing) && push!(kws, Expr(:kw, :n, esc(n)))
-    init_call = isempty(kws) ? :(nothing) :
-        Expr(:call, :(Profile.init), Expr(:parameters, kws...))
+    init_call =
+        isempty(kws) ? :(nothing) : Expr(:call, :(Profile.init), Expr(:parameters, kws...))
 
     return quote
         $(init_call)
@@ -375,10 +377,8 @@ function _scope_profile_expansion(opts, @nospecialize(expr))
 
         scope_profile(;
             compile = CompileStats(
-                elapsed,
-                (comp1[1] - comp0[1]) / 1e9,
-                (comp1[2] - comp0[2]) / 1e9
-            )
+                elapsed, (comp1[1] - comp0[1]) / 1e9, (comp1[2] - comp0[2]) / 1e9
+            ),
         )
     end
 end
@@ -444,30 +444,28 @@ macro scope(args...)
         isempty(rest) &&
             throw(ArgumentError("`@scope $mode` requires an expression to analyze."))
     elseif (rest[1] isa Symbol) && (length(rest) > 1)
-        throw(ArgumentError(
-            "Unknown @scope mode `$(rest[1])`. The modes are " *
-            "$(join(_SCOPE_MODES, ", "))."
-        ))
+        throw(
+            ArgumentError(
+                "Unknown @scope mode `$(rest[1])`. The modes are " *
+                "$(join(_SCOPE_MODES, ", ")).",
+            ),
+        )
     end
 
     expr = rest[end]
     opts = rest[1:(end - 1)]
 
     if mode === :descend
-        isempty(opts) ||
-            throw(ArgumentError("`@scope descend` accepts no options."))
+        isempty(opts) || throw(ArgumentError("`@scope descend` accepts no options."))
         return InteractiveUtils.gen_call_with_extracted_types_and_kwargs(
-            __module__,
-            :scope_descend,
-            (expr,)
+            __module__, :scope_descend, (expr,)
         )
     end
 
     if (mode === :inference) || (mode === :invalidations)
-        isempty(opts) ||
-            throw(ArgumentError("`@scope $mode` accepts no options."))
+        isempty(opts) || throw(ArgumentError("`@scope $mode` accepts no options."))
         return mode === :inference ? _scope_inference_expansion(expr) :
-            _scope_invalidations_expansion(expr)
+               _scope_invalidations_expansion(expr)
     end
 
     (mode === :allocs) && return _scope_allocs_expansion(opts, expr)

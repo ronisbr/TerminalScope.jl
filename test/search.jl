@@ -81,10 +81,7 @@
     # The status bar renders the open prompt.
     tb = TestBackend(100, 30)
     frame = Tachikoma.Frame(
-        tb.buf,
-        Rect(1, 1, 100, 30),
-        Tachikoma.GraphicsRegion[],
-        Tachikoma.PixelSnapshot[]
+        tb.buf, Rect(1, 1, 100, 30), Tachikoma.GraphicsRegion[], Tachikoma.PixelSnapshot[]
     )
     update!(m, KeyEvent(:char, '/'))
     update!(m, KeyEvent(:char, 'a'))

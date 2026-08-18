@@ -10,10 +10,7 @@
     m = make_model()
     tb = TestBackend(100, 30)
     frame = Tachikoma.Frame(
-        tb.buf,
-        Rect(1, 1, 100, 30),
-        Tachikoma.GraphicsRegion[],
-        Tachikoma.PixelSnapshot[]
+        tb.buf, Rect(1, 1, 100, 30), Tachikoma.GraphicsRegion[], Tachikoma.PixelSnapshot[]
     )
     tview(m, frame)
 

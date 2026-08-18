@@ -32,7 +32,7 @@ const _WARM_COUNT = Ref(0)
     synth = (
         allocs = [
             Profile.Allocs.Alloc(Vector{Float64}, st, 128, C_NULL, UInt64(0)),
-            Profile.Allocs.Alloc(String, st, 32, C_NULL, UInt64(1))
+            Profile.Allocs.Alloc(String, st, 32, C_NULL, UInt64(1)),
         ],
     )
     root = TS.build_alloc_tree(synth)
@@ -82,7 +82,7 @@ const _WARM_COUNT = Ref(0)
             tb.buf,
             Rect(1, 1, 110, 30),
             Tachikoma.GraphicsRegion[],
-            Tachikoma.PixelSnapshot[]
+            Tachikoma.PixelSnapshot[],
         )
         tview(mr, frame)
         @test find_text(tb, "Allocations") !== nothing
@@ -116,12 +116,12 @@ const _WARM_COUNT = Ref(0)
         frame("g", 20),
         frame("#f#9", 5),
         frame("kwcall", 0),
-        frame("f", 10)
+        frame("f", 10),
     ]
     lc = Dict{Symbol, Dict{Int, Tuple{Int, Int}}}()
     wroot = TS.build_alloc_tree(
         (allocs = [Profile.Allocs.Alloc(Int, wrapped, 64, C_NULL, UInt64(0))],);
-        line_costs = lc
+        line_costs = lc,
     )
     f = wroot.children[1]
     @test TS.node_name(f) == "f"
@@ -132,7 +132,9 @@ const _WARM_COUNT = Ref(0)
 
     # The source panel of an allocating frame shows the per-line cost column, following
     # the active unit.
-    mw = TS.alloc_viewer((allocs = [Profile.Allocs.Alloc(Int, wrapped, 64, C_NULL, UInt64(0))],))
+    mw = TS.alloc_viewer((
+        allocs = [Profile.Allocs.Alloc(Int, wrapped, 64, C_NULL, UInt64(0))],
+    ))
     @test mw.line_costs == lc
 
     update!(mw, KeyEvent(:home))
@@ -140,10 +142,7 @@ const _WARM_COUNT = Ref(0)
 
     tbw = TestBackend(120, 30)
     fw = Tachikoma.Frame(
-        tbw.buf,
-        Rect(1, 1, 120, 30),
-        Tachikoma.GraphicsRegion[],
-        Tachikoma.PixelSnapshot[]
+        tbw.buf, Rect(1, 1, 120, 30), Tachikoma.GraphicsRegion[], Tachikoma.PixelSnapshot[]
     )
     # The allocating line is the target line, so the gutter cell precedes the marker.
     tview(mw, fw)

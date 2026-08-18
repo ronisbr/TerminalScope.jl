@@ -8,10 +8,7 @@
     m = make_model()
     tb = TestBackend(100, 30)
     frame = Tachikoma.Frame(
-        tb.buf,
-        Rect(1, 1, 100, 30),
-        Tachikoma.GraphicsRegion[],
-        Tachikoma.PixelSnapshot[]
+        tb.buf, Rect(1, 1, 100, 30), Tachikoma.GraphicsRegion[], Tachikoma.PixelSnapshot[]
     )
 
     # Frame list at the root level: pinned parent row plus the children.
@@ -86,10 +83,7 @@
     # Degenerate terminal size.
     tb2 = TestBackend(10, 3)
     frame2 = Tachikoma.Frame(
-        tb2.buf,
-        Rect(1, 1, 10, 3),
-        Tachikoma.GraphicsRegion[],
-        Tachikoma.PixelSnapshot[]
+        tb2.buf, Rect(1, 1, 10, 3), Tachikoma.GraphicsRegion[], Tachikoma.PixelSnapshot[]
     )
     m2 = make_model()
     tview(m2, frame2)

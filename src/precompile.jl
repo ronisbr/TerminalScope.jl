@@ -16,12 +16,10 @@ PrecompileTools.@setup_workload begin
     _pc_f = LCRST.addchild(_pc_root, ND(_pc_sf(:f, Symbol(@__FILE__), 10), 0x00, 1:80))
     _pc_g = LCRST.addchild(_pc_f, ND(_pc_sf(:g, Symbol(@__FILE__), 20), 0x00, 1:50))
     LCRST.addchild(
-        _pc_g,
-        ND(_pc_sf(:h, Symbol(@__FILE__), 30), FlameGraphs.runtime_dispatch, 1:50)
+        _pc_g, ND(_pc_sf(:h, Symbol(@__FILE__), 30), FlameGraphs.runtime_dispatch, 1:50)
     )
     LCRST.addchild(
-        _pc_f,
-        ND(_pc_sf(:k, :Sys, 40; from_c = true), FlameGraphs.gc_event, 51:70)
+        _pc_f, ND(_pc_sf(:k, :Sys, 40; from_c = true), FlameGraphs.gc_event, 51:70)
     )
     LCRST.addchild(_pc_root, ND(_pc_sf(:m, Symbol("x.jl"), 5), 0x00, 81:95))
 
@@ -31,7 +29,7 @@ PrecompileTools.@setup_workload begin
     _pc_allocs = (
         allocs = [
             Profile.Allocs.Alloc(Vector{Float64}, _pc_st, 128, C_NULL, UInt64(0)),
-            Profile.Allocs.Alloc(String, _pc_st, 32, C_NULL, UInt64(1))
+            Profile.Allocs.Alloc(String, _pc_st, 32, C_NULL, UInt64(1)),
         ],
     )
 
@@ -44,7 +42,7 @@ PrecompileTools.@setup_workload begin
             tb.buf,
             Rect(1, 1, 100, 30),
             Tachikoma.GraphicsRegion[],
-            Tachikoma.PixelSnapshot[]
+            Tachikoma.PixelSnapshot[],
         )
 
         # Live-application event path: the app loop delivers every key through
@@ -119,16 +117,18 @@ PrecompileTools.@setup_workload begin
 
         # Invalidation tree conversion and rendering, with a duck-typed stand-in for
         # `SnoopCompile.MethodInvalidations` (SnoopCompile is a weak dependency).
-        mi_inv = invalidation_viewer([
-            (method = nothing, reason = :unknown, backedges = Any[], mt_backedges = Any[])
-        ])
+        mi_inv = invalidation_viewer([(
+            method = nothing, reason = :unknown, backedges = Any[], mt_backedges = Any[]
+        )])
         view(mi_inv, frame)
         update!(mi_inv, KeyEvent(:down))
         view(mi_inv, frame)
 
         # Inspector rendering helpers. The full inspector workload lives in the
         # `TerminalScopeCthulhuExt` extension, which precompiles separately.
-        ansi_spans("plain \e[33myellow\e[39m \e[1;31mbold\e[0m\nsecond \e[38;5;99mline\e[0m")
+        ansi_spans(
+            "plain \e[33myellow\e[39m \e[1;31mbold\e[0m\nsecond \e[38;5;99mline\e[0m"
+        )
         type_stability_style(Union{Int, Float64})
         type_stability_style(Any)
         type_stability_style(Int)
