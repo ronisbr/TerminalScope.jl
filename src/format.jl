@@ -191,9 +191,10 @@ end
     selection_bg() -> Color256
 
 Return the background color used to highlight the row under the cursor, adapted to the
-current light or dark mode.
+current light or dark mode. The color is the `:selection` slot of the active variant,
+overridable through Preferences.jl (see [`set_theme_color!`](@ref)).
 """
-selection_bg() = light_mode() ? Color256(252) : Color256(237)
+selection_bg() = light_mode() ? SCOPE_LIGHT_SELECTION : SCOPE_DARK_SELECTION
 
 """
     with_selection(style::Style, selected::Bool) -> Style

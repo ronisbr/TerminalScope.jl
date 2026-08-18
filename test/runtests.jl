@@ -1209,6 +1209,24 @@ end
     @test TS._build_theme(:dark).bg == Tachikoma.Color256(234)
     @test TS._build_theme(:light).accent == Tachikoma.Color256(172)
 
+    # The selection background is a preference slot outside the Tachikoma theme and
+    # follows the active light mode.
+    old_light = Tachikoma.light_mode()
+    Tachikoma.set_light_mode!(false)
+    @test TS.selection_bg() == TS.SCOPE_DARK_SELECTION
+    Tachikoma.set_light_mode!(true)
+    @test TS.selection_bg() == TS.SCOPE_LIGHT_SELECTION
+    Tachikoma.set_light_mode!(old_light)
+
+    @test TS.SCOPE_DARK_SELECTION == Tachikoma.Color256(TS.SELECTION_DEFAULTS[:dark])
+    @test TS.SCOPE_LIGHT_SELECTION == Tachikoma.Color256(TS.SELECTION_DEFAULTS[:light])
+    @test_logs (:info,) TS.set_theme_color!(:dark, :selection, 238)
+    @test TS._pref_color(:dark, :selection, TS.SELECTION_DEFAULTS[:dark]) ==
+        Tachikoma.Color256(238)
+    @test_logs (:info,) TS.reset_theme_colors!()
+    @test TS._pref_color(:dark, :selection, TS.SELECTION_DEFAULTS[:dark]) ==
+        Tachikoma.Color256(TS.SELECTION_DEFAULTS[:dark])
+
     # An invalid stored preference falls back to the default with a warning.
     Preferences.set_preferences!(TS, "dark_bg" => "oops"; force = true)
     theme = @test_logs (:warn,) TS._build_theme(:dark)

@@ -129,6 +129,41 @@ color overrides (see [`set_theme_color!`](@ref)).
 const SCOPE_LIGHT_THEME = _build_theme(:light)
 
 """
+    SELECTION_DEFAULTS
+
+Default xterm-256 color codes of the `:selection` slot of the `:dark` and `:light` theme
+variants: the background used to highlight the row under the cursor. The slot lives
+outside `Tachikoma.Theme`, which has no selection color, but is overridden through the
+same preference mechanism as the [`THEME_SLOTS`](@ref) (see [`set_theme_color!`](@ref)).
+"""
+const SELECTION_DEFAULTS = Dict{Symbol, Int}(:dark => 237, :light => 252)
+
+"""
+    SCOPE_DARK_SELECTION
+
+Selection background of the dark theme variant, built from [`SELECTION_DEFAULTS`](@ref)
+and the Preferences.jl color overrides (see [`set_theme_color!`](@ref)).
+"""
+const SCOPE_DARK_SELECTION = _pref_color(:dark, :selection, SELECTION_DEFAULTS[:dark])
+
+"""
+    SCOPE_LIGHT_SELECTION
+
+Selection background of the light theme variant, built from [`SELECTION_DEFAULTS`](@ref)
+and the Preferences.jl color overrides (see [`set_theme_color!`](@ref)).
+"""
+const SCOPE_LIGHT_SELECTION = _pref_color(:light, :selection, SELECTION_DEFAULTS[:light])
+
+"""
+    _PREF_SLOTS
+
+Every color slot that can be overridden with a Preferences.jl preference: the
+[`THEME_SLOTS`](@ref) of the `Tachikoma.Theme` plus the `:selection` slot (see
+[`SELECTION_DEFAULTS`](@ref)).
+"""
+const _PREF_SLOTS = (THEME_SLOTS..., :selection)
+
+"""
     set_theme_color!(
         variant::Symbol,
         slot::Symbol,
@@ -143,9 +178,10 @@ Julia. The function throws when the variant, slot, or color is invalid.
 # Arguments
 
 - `variant::Symbol`: Theme variant, either `:dark` or `:light`.
-- `slot::Symbol`: Color slot, one of [`THEME_SLOTS`](@ref): `:bg`, `:border`,
+- `slot::Symbol`: Color slot, one of [`THEME_SLOTS`](@ref) — `:bg`, `:border`,
     `:border_focus`, `:text`, `:text_dim`, `:text_bright`, `:primary`, `:secondary`,
-    `:accent`, `:success`, `:warning`, `:error`, or `:title`.
+    `:accent`, `:success`, `:warning`, `:error`, or `:title` — or `:selection`, the
+    background of the row under the cursor.
 - `color::Union{Integer, AbstractString}`: Color as an xterm-256 code (0-255) or a hex
     string like `"#F59E0B"`, which is quantized to the closest xterm-256 color.
 
@@ -174,10 +210,10 @@ function set_theme_color!(
         ArgumentError("Unknown theme `:$variant`. The options are `:dark` and `:light`.")
     )
 
-    (slot in THEME_SLOTS) || throw(
+    (slot in _PREF_SLOTS) || throw(
         ArgumentError(
             "Unknown theme slot `:$slot`. The options are " *
-                join((":$s" for s in THEME_SLOTS), ", ") * "."
+                join((":$s" for s in _PREF_SLOTS), ", ") * "."
         )
     )
 
@@ -200,7 +236,7 @@ Delete every theme color preference of both variants, restoring the default colo
 [`THEME_DEFAULTS`](@ref) after restarting Julia.
 """
 function reset_theme_colors!()
-    keys = ["$(v)_$(s)" for v in (:dark, :light) for s in THEME_SLOTS]
+    keys = ["$(v)_$(s)" for v in (:dark, :light) for s in _PREF_SLOTS]
     Preferences.delete_preferences!(@__MODULE__, keys...; force = true)
     @info "Theme colors reset to the defaults. Restart Julia for it to take effect."
     return nothing

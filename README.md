@@ -68,8 +68,9 @@ TerminalScope.reset_theme_colors!()
 
 The available slots are `:bg`, `:border`, `:border_focus`, `:text`, `:text_dim`,
 `:text_bright`, `:primary`, `:secondary`, `:accent`, `:success`, `:warning`, `:error`,
-and `:title`. The overrides are stored in the `LocalPreferences.toml` file of the active
-project and take effect after restarting Julia.
+`:title`, and `:selection` (the background of the row under the cursor). The overrides
+are stored in the `LocalPreferences.toml` file of the active project and take effect
+after restarting Julia.
 
 ## Documentation
 
