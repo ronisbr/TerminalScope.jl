@@ -582,7 +582,10 @@ function render_status!(m::ProfileViewer, buf::Buffer, rect::Rect)
     end
 
     right_spans = if searching
-        Span[Span("/" * m.search_input * "▏ ", tstyle(:accent, bold = true))]
+        Span[
+            Span("/", tstyle(:accent, bold = true)),
+            Span(m.search_input * "▏ ", tstyle(:text, bold = true))
+        ]
     elseif !isempty(m.notice)
         Span[Span(m.notice * " ", tstyle(:accent, bold = true))]
     else
