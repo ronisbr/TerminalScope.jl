@@ -40,6 +40,11 @@ Pressing `u` re-ranks the whole tree by **allocation counts** (and back), recomp
 every percentage and cost bar, so both the "few huge buffers" and the "many small
 allocations" problems are easy to spot.
 
+Pressing `s` switches to the flat self-time view, ranking the allocating call sites of
+the whole tree by their aggregated cost: the costs of the allocated-type leaves are
+charged to the allocating source frame, so the flat list answers "which line of my code
+allocates" directly.
+
 Descending past the deepest frame of a branch lists the **allocated types**
 (`Vector{Float64}`, `String`, ...) as leaves with their own costs, so the viewer shows
 not only where the allocation happened but also what was allocated.

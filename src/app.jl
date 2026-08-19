@@ -87,6 +87,13 @@ Store the state of the interactive profile viewer application.
     in depth-first order.
 - `search_idx::Int`: Index of the current match in `search_matches`, or `0` before the
     first jump.
+- `flat::Bool`: Whether the frame list shows the flat self-time view instead of the
+    level drill-down (toggled with the `s` key).
+- `flat_targets::Vector{PVNode}`: Hottest tree occurrence of each flat row, parallel to
+    `rows` while the flat view is active, and empty otherwise.
+- `flat_return::Union{Nothing, Tuple{PVNode, Union{PVNode, Nothing}}}`: Current node and
+    selected row saved when the flat view was entered, restored when it is left, or
+    `nothing` outside the flat view.
 """
 mutable struct ProfileViewer <: Model
     root::PVNode
@@ -119,6 +126,9 @@ mutable struct ProfileViewer <: Model
     search_query::String
     search_matches::Vector{PVNode}
     search_idx::Int
+    flat::Bool
+    flat_targets::Vector{PVNode}
+    flat_return::Union{Nothing, Tuple{PVNode, Union{PVNode, Nothing}}}
 end
 
 """
@@ -205,6 +215,9 @@ function _viewer(
         "",
         PVNode[],
         0,
+        false,
+        PVNode[],
+        nothing,
     )
 
     m.tasks = Tachikoma.TaskQueue(; on_ready = () -> begin
@@ -342,9 +355,12 @@ end
 Enter the node under the cursor: go up when the cursor is on the pinned parent row, open
 the detail view when the node is a leaf, and list the node's children otherwise,
 auto-descending through single-child chains until the first branching point. Mutate the
-navigation state of `m` accordingly.
+navigation state of `m` accordingly. In the flat self-time view, jump into the tree view
+at the hottest occurrence of the selected row instead (see [`flat_descend!`](@ref)).
 """
 function descend!(m::ProfileViewer)
+    m.flat && return flat_descend!(m)
+
     node = selected_row(m)
     node === nothing && return nothing
 
@@ -369,9 +385,12 @@ end
 Go back to the closest ancestor of the current node that is a branching point, placing
 the cursor on the node the user came from and mutating the navigation state of `m`. This
 inverts the auto-descent of [`descend!`](@ref) in one keypress. Do nothing when the
-current node is the tree root.
+current node is the tree root. In the flat self-time view, return to the saved tree view
+instead (see [`leave_flat!`](@ref)).
 """
 function ascend!(m::ProfileViewer)
+    m.flat && return leave_flat!(m)
+
     prev = m.current
     node = prev.parent
     node === nothing && return nothing
@@ -491,7 +510,8 @@ focused with the Tab or number keys receives the movement keys: the frame list n
 the tree, and the source panel scrolls the code. `+` and `-` grow and shrink the focused
 panel one step at a time, up to maximizing it (see [`zoom!`](@ref)), and Esc restores
 the default split. `/` opens the frame search prompt, and `n` / `N` jump between the
-matches (see [`_search!`](@ref)).
+matches (see [`_search!`](@ref)). `s` toggles the flat self-time view (see
+[`enter_flat!`](@ref)).
 """
 function _update_tree!(m::ProfileViewer, evt::KeyEvent)
     is_char(c::Char) = (evt.key == :char) && (evt.char == c)
@@ -531,6 +551,9 @@ function _update_tree!(m::ProfileViewer, evt::KeyEvent)
 
     elseif is_char('u')
         toggle_alloc_unit!(m)
+
+    elseif is_char('s')
+        m.flat ? leave_flat!(m) : enter_flat!(m)
 
     elseif is_char('q')
         m.quit = true
@@ -597,7 +620,9 @@ end
 
 Toggle the cost unit of the allocation viewer between allocated bytes and allocation
 counts, re-ranking the whole tree by the new unit and keeping the cursor on the selected
-node. Do nothing when `m` is not an allocation viewer.
+node. In the flat self-time view, the flat rows are rebuilt by the new unit instead,
+keeping the cursor on the row of the same frame. Do nothing when `m` is not an
+allocation viewer.
 """
 function toggle_alloc_unit!(m::ProfileViewer)
     ((m.unit === :bytes) || (m.unit === :allocs)) || return nothing
@@ -609,7 +634,133 @@ function toggle_alloc_unit!(m::ProfileViewer)
 
     m.unit = m.unit === :bytes ? :allocs : :bytes
     m.nsamples = m.root.count
-    set_current!(m, m.current, selected)
+
+    if m.flat
+        _rebuild_flat!(m, selected)
+    else
+        set_current!(m, m.current, selected)
+    end
+
+    return nothing
+end
+
+############################################################################################
+#                                    Flat Self-Time View                                   #
+############################################################################################
+
+"""
+    _flat_key(node::PVNode) -> Tuple{Symbol, Symbol, Int, Bool}
+
+Return the aggregation key of `node` in the flat self-time view: the function name, the
+file, the line, and the C-frame flag of its stack frame (see [`flat_profile`](@ref)).
+"""
+_flat_key(node::PVNode) = (node.sf.func, node.sf.file, node.sf.line, node.sf.from_c)
+
+"""
+    enter_flat!(m::ProfileViewer) -> Nothing
+
+Switch the frame list of `m` to the flat self-time view: a flat list of the hottest
+frames of the whole tree ranked by their aggregated self cost (see
+[`flat_profile`](@ref)), saving the tree position so [`leave_flat!`](@ref) can restore
+it. A status notice explains why the view is unavailable for the invalidations viewer or
+when no frame carries self cost.
+"""
+function enter_flat!(m::ProfileViewer)
+    if m.unit === :invalidations
+        m.notice = "The flat view is not available for invalidations."
+        return nothing
+    end
+
+    rows, targets = flat_profile(m.root, m.unit)
+
+    if isempty(rows)
+        m.notice = "No frames with self cost to rank."
+        return nothing
+    end
+
+    m.flat_return = (m.current, selected_row(m))
+    m.rows = rows
+    m.flat_targets = targets
+    m.flat = true
+    m.cursor = 1
+    m.scroll = 0
+    m.tree_focus = :list
+    clamp_scroll!(m)
+    return nothing
+end
+
+"""
+    leave_flat!(m::ProfileViewer) -> Nothing
+
+Leave the flat self-time view of `m`, restoring the tree position saved by
+[`enter_flat!`](@ref).
+"""
+function leave_flat!(m::ProfileViewer)
+    saved = m.flat_return
+    m.flat = false
+    empty!(m.flat_targets)
+    m.flat_return = nothing
+
+    if saved === nothing
+        set_current!(m, m.current, nothing)
+    else
+        set_current!(m, saved[1], saved[2])
+    end
+
+    return nothing
+end
+
+"""
+    flat_descend!(m::ProfileViewer) -> Nothing
+
+Jump from the selected flat row of `m` into the tree view, placing the cursor on the
+hottest tree occurrence of the row's frame in its own level.
+"""
+function flat_descend!(m::ProfileViewer)
+    isempty(m.flat_targets) && return leave_flat!(m)
+
+    target = m.flat_targets[clamp(m.cursor, 1, length(m.flat_targets))]
+    m.flat = false
+    empty!(m.flat_targets)
+    m.flat_return = nothing
+
+    parent = target.parent
+
+    if parent === nothing
+        set_current!(m, target, nothing)
+    else
+        set_current!(m, parent, target)
+    end
+
+    m.tree_focus = :list
+    return nothing
+end
+
+"""
+    _rebuild_flat!(m::ProfileViewer, selected::Union{PVNode, Nothing}) -> Nothing
+
+Rebuild the flat rows of `m` after the tree costs changed (the allocation unit toggle),
+keeping the cursor on the row aggregating the same frame as `selected` when it is still
+listed. Leave the flat view when no frame carries self cost by the new unit.
+"""
+function _rebuild_flat!(m::ProfileViewer, selected::Union{PVNode, Nothing})
+    rows, targets = flat_profile(m.root, m.unit)
+
+    if isempty(rows)
+        leave_flat!(m)
+        return nothing
+    end
+
+    m.rows = rows
+    m.flat_targets = targets
+
+    idx =
+        selected === nothing ? nothing :
+        findfirst(n -> _flat_key(n) == _flat_key(selected), rows)
+
+    m.cursor = idx === nothing ? 1 : idx
+    m.scroll = 0
+    clamp_scroll!(m)
     return nothing
 end
 
@@ -792,12 +943,19 @@ end
     _goto_match!(m::ProfileViewer, idx::Int) -> Nothing
 
 Navigate the frame list of `m` to the search match of index `idx`, wrapping around the
-match list, and report the position in a status notice. Do nothing when there are no
-matches.
+match list, and report the position in a status notice. The jump always lands in the
+tree view, leaving the flat self-time view first when it is active. Do nothing when
+there are no matches.
 """
 function _goto_match!(m::ProfileViewer, idx::Int)
     n = length(m.search_matches)
     (n == 0) && return nothing
+
+    if m.flat
+        m.flat = false
+        empty!(m.flat_targets)
+        m.flat_return = nothing
+    end
 
     m.search_idx = mod1(idx, n)
     match = m.search_matches[m.search_idx]

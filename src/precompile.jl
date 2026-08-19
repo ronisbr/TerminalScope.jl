@@ -92,6 +92,12 @@ PrecompileTools.@setup_workload begin
         update!(m, KeyEvent(:char, 'n'))
         view(m, frame)
 
+        # Flat self-time view: aggregation, rendering, and the jump back into the tree.
+        update!(m, KeyEvent(:char, 's'))
+        view(m, frame)
+        update!(m, KeyEvent(:enter))
+        view(m, frame)
+
         # Help dialog.
         update!(m, KeyEvent(:char, '?'))
         view(m, frame)

@@ -154,6 +154,10 @@ end
     include("./rendering.jl")
 end
 
+@testset "Flat Self-Time View" verbose = true begin
+    include("./flat_view.jl")
+end
+
 if CTHULHU_AVAILABLE
     @testset "Type Inspector" verbose = true begin
         include("./type_inspector.jl")

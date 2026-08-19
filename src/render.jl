@@ -21,6 +21,7 @@ const HELP_ENTRIES = (
     (:tree, "/", "Search frames in the whole tree"),
     (:tree, "n / N", "Jump to the next / previous match"),
     (:tree, "i", "Inspect type instabilities"),
+    (:tree, "s", "Toggle the flat self-time view"),
     (:tree, "u", "Toggle bytes / allocs (allocations)"),
     (:tree, "q", "Quit the application"),
     (:inspect, "↑ / ↓", "Select a call site"),
@@ -278,10 +279,12 @@ end
 Render the scrollable frame list of the current node into `buf` inside `rect`, mutating
 `buf` and updating `m.visible_h` and `m.scroll`. The list is topped by a header line
 labeling the columns when there is room for it. `focused` selects the border highlight.
+In the flat self-time view, the panel is titled `Hot Frames` and the percentage column
+is labeled `Self`.
 """
 function render_tree!(m::ProfileViewer, buf::Buffer, rect::Rect; focused::Bool = true)
     block = Block(;
-        title = " [1] Frames ",
+        title = m.flat ? " [1] Hot Frames " : " [1] Frames ",
         title_style = tstyle(:title; bold = focused),
         border_style = tstyle(focused ? :border_focus : :border),
         box = BOX_ROUNDED,
@@ -302,7 +305,7 @@ function render_tree!(m::ProfileViewer, buf::Buffer, rect::Rect; focused::Bool =
     count_w = max(7, length(count_cell(m.nsamples, m.unit)), length(count_label(m.unit)))
 
     (header_h == 1) &&
-        render_tree_header!(buf, inner.x, inner.y, content_right, count_w, m.unit)
+        render_tree_header!(buf, inner.x, inner.y, content_right, count_w, m.unit, m.flat)
 
     for (i, y) in zip((m.scroll + 1):length(m.rows), rows_y:bottom(inner))
         node = m.rows[i]
@@ -335,17 +338,20 @@ end
         y::Int,
         content_right::Int,
         count_w::Int,
-        unit::Symbol
+        unit::Symbol,
+        flat::Bool
     ) -> Nothing
 
 Render the frame list header line into `buf` at line `y`, mutating `buf`. It labels the
 columns of the rows below: the frame name and location on the left and, on the right,
 the mini cost bar, the cost in `unit` (samples, inference time, or invalidated
-instances), and the percentage of the total cost. The labels are aligned with the columns of a row spanning from `x` to
-`content_right`, whose cost cell is `count_w` characters wide.
+instances), and the percentage of the total cost — labeled `Self` instead of `Total`
+when `flat` selects the flat self-time view. The labels are aligned with the columns of
+a row spanning from `x` to `content_right`, whose cost cell is `count_w` characters
+wide.
 """
 function render_tree_header!(
-    buf::Buffer, x::Int, y::Int, content_right::Int, count_w::Int, unit::Symbol
+    buf::Buffer, x::Int, y::Int, content_right::Int, count_w::Int, unit::Symbol, flat::Bool
 )
     row_w = content_right - x + 1
     row_w < 1 && return nothing
@@ -367,7 +373,9 @@ function render_tree_header!(
         style,
     )
 
-    set_string!(buf, content_right - pct_w + 1, y, lpad("Total", pct_w), style)
+    set_string!(
+        buf, content_right - pct_w + 1, y, lpad(flat ? "Self" : "Total", pct_w), style
+    )
     return nothing
 end
 
@@ -540,6 +548,7 @@ function render_status!(m::ProfileViewer, buf::Buffer, rect::Rect)
             "1/2" => "pane",
             "+/-" => "zoom",
             "/" => "search",
+            "s" => m.flat ? "tree" : "self",
             "i" => "inspect",
             "?" => "help",
             "q" => "quit",
@@ -582,8 +591,13 @@ function render_status!(m::ProfileViewer, buf::Buffer, rect::Rect)
     elseif !isempty(m.notice)
         Span[Span(m.notice * " ", tstyle(:accent; bold = true))]
     else
-        crumb_str =
-            m.mode == :inspect ? inspect_breadcrumb(m.inspect) : breadcrumb(m.current)
+        crumb_str = if m.mode == :inspect
+            inspect_breadcrumb(m.inspect)
+        elseif m.flat
+            "Flat view: hottest frames by self " * lowercase(count_label(m.unit))
+        else
+            breadcrumb(m.current)
+        end
 
         Span[Span(crumb_str * " ", txt)]
     end

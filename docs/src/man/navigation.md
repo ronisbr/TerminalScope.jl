@@ -34,6 +34,7 @@ the movement keys act on the focused one.
 | `^D` / `^U`       | Source panel: scroll half a page                              |
 | `/`               | Search frames in the whole tree (case-insensitive regex)      |
 | `n` / `N`         | Jump to the next / previous search match                      |
+| `s`               | Toggle the flat self-time view                                |
 | `i`               | Inspect the selected frame for type instabilities             |
 | `u`               | Allocations: toggle between bytes and allocation counts       |
 | `?`               | Toggle the help dialog                                        |
@@ -50,6 +51,21 @@ The mouse is supported as well: the wheel scrolls the panel under the cursor —
 the selection in the lists and the view in the code panes — and a left click focuses the
 clicked panel, moving the selection to the clicked row. Clicking the selected row again
 enters it, and a click closes the help dialog.
+
+## Flat Self-Time View
+
+The frame list ranks frames by their *inclusive* cost while drilling down. Pressing `s`
+switches it to a flat list of the hottest frames of the **whole tree** ranked by their
+aggregated *self* cost — the cost spent in the frame itself, excluding its callees —
+which is the classic way to find the hot leaf functions of a profile.
+
+Occurrences of the same frame (same function, file, and line) anywhere in the tree merge
+into one row. `Enter` jumps back into the tree view at the hottest occurrence of the
+selected row, and `s` or `Backspace` return to the saved tree position. In the
+allocation viewer, the costs of the synthetic allocated-type leaves are charged to the
+allocating call site, so the flat view answers "which line of my code allocates"; the
+`u` unit toggle re-ranks the flat rows in place. The invalidations viewer has no flat
+view, since its counts are not a cost distribution.
 
 ## Frame Search
 

@@ -189,6 +189,181 @@ the pinned parent row followed by its children.
 level_rows(node::PVNode) = PVNode[node; node.children]
 
 """
+    mutable struct _FlatGroup
+
+Accumulator of one aggregation group of the flat self-time view (see
+[`flat_profile`](@ref)).
+
+# Fields
+
+- `sf::StackFrame`: Stack frame of the first occurrence, used for display.
+- `self::Int`: Aggregated self cost of the group.
+- `secondary::Int`: Aggregated secondary self cost of the group (the inactive
+    allocation unit), or `0` for the other viewers.
+- `status::UInt8`: Bitwise OR of the status flags of the occurrences.
+- `inference::Bool`: Whether any occurrence is a compiler frame.
+- `target::PVNode`: Occurrence with the highest self cost.
+- `target_self::Int`: Self cost of `target`.
+"""
+mutable struct _FlatGroup
+    sf::StackFrame
+    self::Int
+    secondary::Int
+    status::UInt8
+    inference::Bool
+    target::PVNode
+    target_self::Int
+end
+
+"""
+    _is_alloc_type_leaf(node::PVNode, unit::Symbol) -> Bool
+
+Return `true` if `node` is a synthetic allocated-type leaf of the allocation tree: a
+leaf without location, method instance, and C flag, only checked when `unit` is an
+allocation unit (see [`build_alloc_tree`](@ref)).
+"""
+_is_alloc_type_leaf(node::PVNode, unit::Symbol) =
+    ((unit === :bytes) || (unit === :allocs)) &&
+    isempty(node.children) &&
+    (node.sf.file === Symbol("")) &&
+    (node.sf.line == 0) &&
+    (node.sf.linfo === nothing) &&
+    !node.sf.from_c
+
+"""
+    _flat_self(node::PVNode, unit::Symbol) -> Int
+
+Return the self cost of `node` charged by the flat self-time view. For the allocation
+units, the costs of the synthetic allocated-type leaves are charged to the allocating
+call site — `node` itself — since the type leaves carry the whole allocation cost as
+self (see [`_fill_alloc_self!`](@ref)).
+"""
+function _flat_self(node::PVNode, unit::Symbol)
+    ((unit === :bytes) || (unit === :allocs)) || return node.self
+
+    s = node.self
+
+    for c in node.children
+        _is_alloc_type_leaf(c, unit) && (s += c.count)
+    end
+
+    return s
+end
+
+"""
+    _flat_secondary(node::PVNode, unit::Symbol) -> Int
+
+Return the secondary self cost of `node` charged by the flat self-time view: the
+self-cost analog of `node.allocs` (the inactive allocation unit) with the synthetic
+allocated-type leaves charged to `node` (see [`_flat_self`](@ref)), or `0` for the
+non-allocation viewers.
+"""
+function _flat_secondary(node::PVNode, unit::Symbol)
+    ((unit === :bytes) || (unit === :allocs)) || return 0
+
+    s = node.allocs - sum(c -> c.allocs, node.children; init = 0)
+
+    for c in node.children
+        _is_alloc_type_leaf(c, unit) && (s += c.allocs)
+    end
+
+    return max(s, 0)
+end
+
+"""
+    flat_profile(root::PVNode, unit::Symbol) -> Tuple{Vector{PVNode}, Vector{PVNode}}
+
+Aggregate the tree rooted at `root` into the rows of the flat self-time view, returning
+`(rows, targets)`: synthetic row nodes ranked by aggregated self cost in descending
+order, and, parallel to them, the hottest tree occurrence of each row.
+
+The frames are grouped by function name, file, line, and C flag — the same identity used
+by the allocation tree — so the specializations of one call site merge into one row.
+The rows carry the aggregated self cost as both `count` and `self`, the percentages
+against the total cost of `root`, the OR of the status flags, and `root` as their
+parent, so the display helpers treat them as regular frames. Groups without self cost
+are dropped. For the allocation units, the synthetic allocated-type leaves are charged
+to the allocating call site and are not listed themselves (see [`_flat_self`](@ref)).
+"""
+function flat_profile(root::PVNode, unit::Symbol)
+    groups = _FlatGroup[]
+    index = Dict{Tuple{Symbol, Symbol, Int, Bool}, Int}()
+
+    function visit(node::PVNode)
+        if !is_tree_root(node) && !_is_alloc_type_leaf(node, unit)
+            self = _flat_self(node, unit)
+
+            if self > 0
+                key = (node.sf.func, node.sf.file, node.sf.line, node.sf.from_c)
+                i = get(index, key, 0)
+
+                if i == 0
+                    push!(
+                        groups,
+                        _FlatGroup(
+                            node.sf,
+                            self,
+                            _flat_secondary(node, unit),
+                            node.status,
+                            node.inference,
+                            node,
+                            self,
+                        ),
+                    )
+                    index[key] = length(groups)
+                else
+                    g = groups[i]
+                    g.self += self
+                    g.secondary += _flat_secondary(node, unit)
+                    g.status |= node.status
+                    g.inference |= node.inference
+
+                    if self > g.target_self
+                        g.target = node
+                        g.target_self = self
+                    end
+                end
+            end
+        end
+
+        for c in node.children
+            visit(c)
+        end
+
+        return nothing
+    end
+
+    visit(root)
+    sort!(groups; by = g -> g.self, rev = true)
+
+    total = max(root.count, 1)
+    rows = PVNode[]
+    targets = PVNode[]
+
+    for g in groups
+        pct = 100 * g.self / total
+        push!(
+            rows,
+            PVNode(
+                g.sf;
+                count = g.self,
+                self = g.self,
+                pct_total = pct,
+                pct_parent = pct,
+                status = g.status,
+                depth = 1,
+                parent = root,
+                inference = g.inference,
+                allocs = g.secondary,
+            ),
+        )
+        push!(targets, g.target)
+    end
+
+    return rows, targets
+end
+
+"""
     count_nodes(node::PVNode) -> Int
 
 Return the total number of nodes in the tree rooted at `node`, including `node` itself.
