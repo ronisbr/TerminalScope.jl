@@ -39,6 +39,7 @@ the movement keys act on the focused one.
 | `n` / `N`         | Jump to the next / previous search match                      |
 | `s`               | Toggle the flat self-time view                                |
 | `f`               | Toggle the flame-graph panel (graphics terminals)             |
+| `e`               | Open the selected frame in the editor                         |
 | `i`               | Inspect the selected frame for type instabilities             |
 | `u`               | Allocations: toggle between bytes and allocation counts       |
 | `?`               | Toggle the help dialog                                        |
@@ -97,6 +98,15 @@ allocation viewer, the costs of the synthetic allocated-type leaves are charged 
 allocating call site, so the flat view answers "which line of my code allocates"; the
 `u` unit toggle re-ranks the flat rows in place. The invalidations viewer has no flat
 view, since its counts are not a cost distribution.
+
+## Jump to Editor
+
+Pressing `e` opens the selected frame — or, inside the type inspector, the inspected
+method — in the user's editor at the exact file and line, suspending the interface while
+the editor runs and restoring it afterwards. The editor is resolved like `Base.edit`,
+from `$JULIA_EDITOR`, `$VISUAL`, or `$EDITOR`. Editors that return immediately (e.g.
+GUI editors like VS Code) bring the viewer right back while the file opens in the
+background.
 
 ## Frame Search
 

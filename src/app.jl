@@ -96,6 +96,9 @@ Store the state of the interactive profile viewer application.
 - `flat_return::Union{Nothing, Tuple{PVNode, Union{PVNode, Nothing}}}`: Current node and
     selected row saved when the flat view was entered, restored when it is left, or
     `nothing` outside the flat view.
+- `term::Union{Terminal, Nothing}`: Terminal handle of the application loop, stored by
+    [`init!`](@ref) and used to suspend the interface around the editor jump, or
+    `nothing` outside the loop.
 """
 mutable struct ProfileViewer <: Model
     root::PVNode
@@ -132,6 +135,7 @@ mutable struct ProfileViewer <: Model
     flat::Bool
     flat_targets::Vector{PVNode}
     flat_return::Union{Nothing, Tuple{PVNode, Union{PVNode, Nothing}}}
+    term::Union{Terminal, Nothing}
 end
 
 """
@@ -222,6 +226,7 @@ function _viewer(
         false,
         PVNode[],
         nothing,
+        nothing,
     )
 
     m.tasks = Tachikoma.TaskQueue(; on_ready = () -> begin
@@ -250,6 +255,17 @@ to trigger a redraw.
 """
 function set_wake!(m::ProfileViewer, notify::Function)
     m.wake[] = notify
+    return nothing
+end
+
+"""
+    init!(m::ProfileViewer, t::Terminal) -> Nothing
+
+Store the terminal handle of the application loop, used to suspend the interface around
+the editor jump (see [`_with_suspended_tui`](@ref)).
+"""
+function init!(m::ProfileViewer, t::Terminal)
+    m.term = t
     return nothing
 end
 
@@ -515,8 +531,8 @@ the tree, and the source panel scrolls the code. `+` and `-` grow and shrink the
 panel one step at a time, up to maximizing it (see [`zoom!`](@ref)), and Esc restores
 the default split. `/` opens the frame search prompt, and `n` / `N` jump between the
 matches (see [`_search!`](@ref)). `s` toggles the flat self-time view (see
-[`enter_flat!`](@ref)), and `f` toggles the flame-graph panel (see
-[`toggle_flame!`](@ref)).
+[`enter_flat!`](@ref)), `f` toggles the flame-graph panel (see [`toggle_flame!`](@ref)),
+and `e` opens the selected frame in the editor (see [`edit_selected!`](@ref)).
 """
 function _update_tree!(m::ProfileViewer, evt::KeyEvent)
     is_char(c::Char) = (evt.key == :char) && (evt.char == c)
@@ -562,6 +578,9 @@ function _update_tree!(m::ProfileViewer, evt::KeyEvent)
 
     elseif is_char('s')
         m.flat ? leave_flat!(m) : enter_flat!(m)
+
+    elseif is_char('e')
+        edit_selected!(m)
 
     elseif is_char('q')
         m.quit = true
@@ -838,6 +857,9 @@ function _update_inspect!(m::ProfileViewer, evt::KeyEvent)
 
     elseif is_char('t')
         inspect_toggle_view!(m)
+
+    elseif is_char('e')
+        edit_inspected!(m)
     end
 
     return nothing
@@ -977,6 +999,165 @@ function _goto_match!(m::ProfileViewer, idx::Int)
 
     m.tree_focus = :list
     m.notice = "Match $(m.search_idx)/$(n) for \"$(m.search_query)\"."
+    return nothing
+end
+
+############################################################################################
+#                                        Editor Jump                                       #
+############################################################################################
+
+"""
+    _EDITOR_OPENER
+
+Override of the editor launcher used by the tests: when it holds a function
+`(path::String, line::Int) -> Any`, [`_open_editor`](@ref) calls it instead of
+`InteractiveUtils.edit`.
+"""
+const _EDITOR_OPENER = Base.RefValue{Any}(nothing)
+
+"""
+    _open_editor(path::String, line::Int) -> Nothing
+
+Open the user's editor — resolved by `InteractiveUtils` from `\$JULIA_EDITOR`,
+`\$VISUAL`, and `\$EDITOR` — at `line` of the file `path`, or call the test override
+when it is set (see [`_EDITOR_OPENER`](@ref)).
+"""
+function _open_editor(path::String, line::Int)
+    opener = _EDITOR_OPENER[]
+
+    if opener === nothing
+        InteractiveUtils.edit(path, max(line, 0))
+    else
+        opener(path, line)
+    end
+
+    return nothing
+end
+
+"""
+    _with_suspended_tui(f::Function, m::ProfileViewer) -> Any
+
+Run `f()` with the terminal restored to its normal state, suspending the Tachikoma
+interface around the call and returning the result of `f`: the alternate screen, the
+raw mode, the mouse, and the keyboard protocol are released, and the standard streams —
+redirected to capture pipes by the application loop — are pointed back at the terminal
+so a spawned editor owns it. The interface is re-entered afterwards, even when `f`
+throws, and the next frame repaints the whole screen. When the model carries no terminal
+handle (headless use), `f` runs directly.
+"""
+function _with_suspended_tui(f::Function, m::ProfileViewer)
+    t = m.term
+    (t === nothing) && return f()
+
+    Tachikoma.leave_tui!(t)
+
+    tty = @static Sys.iswindows() ? nothing : try
+        open("/dev/tty", "r+")
+    catch
+        nothing
+    end
+
+    prev_out = stdout
+    prev_err = stderr
+
+    if tty !== nothing
+        redirect_stdout(tty)
+        redirect_stderr(tty)
+    end
+
+    try
+        return f()
+    finally
+        if tty !== nothing
+            redirect_stdout(prev_out)
+            redirect_stderr(prev_err)
+
+            try
+                close(tty)
+            catch
+            end
+        end
+
+        Tachikoma.enter_tui!(t)
+
+        # The renderer diffs against the previous frame, so blank it to force a full
+        # repaint over whatever the editor left on screen.
+        Tachikoma.reset!(Tachikoma.previous_buf(t))
+    end
+end
+
+"""
+    edit_selected!(m::ProfileViewer) -> Nothing
+
+Open the user's editor at the source line of the node under the cursor, suspending the
+interface while the editor runs (see [`_with_suspended_tui`](@ref)). A status notice
+explains why the row cannot be opened: aggregate rows and C frames have no Julia source,
+and some source files cannot be found.
+"""
+function edit_selected!(m::ProfileViewer)
+    node = selected_row(m)
+    node === nothing && return nothing
+
+    if is_tree_root(node)
+        m.notice = "Aggregate rows have no source to open."
+        return nothing
+    end
+
+    if node.sf.from_c
+        m.notice = "C frames have no Julia source to open."
+        return nothing
+    end
+
+    path = resolve_source(node)
+
+    if path === nothing
+        m.notice = "Source file not found — cannot open the editor."
+        return nothing
+    end
+
+    try
+        _with_suspended_tui(() -> _open_editor(path, Int(node.sf.line)), m)
+    catch
+        m.notice = "Could not launch the editor."
+    end
+
+    return nothing
+end
+
+"""
+    edit_inspected!(m::ProfileViewer) -> Nothing
+
+Open the user's editor at the definition of the method inspected by the type-instability
+inspector, suspending the interface while the editor runs (see
+[`_with_suspended_tui`](@ref)). A status notice explains when the method has no source
+file.
+"""
+function edit_inspected!(m::ProfileViewer)
+    fr = inspect_top(m.inspect)
+    fr === nothing && return nothing
+
+    def = fr.mi.def
+
+    path = if def isa Method
+        file = string(def.file)
+        resolved =
+            isempty(file) ? nothing : (isfile(file) ? file : Base.find_source_file(file))
+        (resolved !== nothing) && isfile(resolved) ? resolved : nothing
+    else
+        nothing
+    end
+
+    if path === nothing
+        m.notice = "The inspected method has no source file."
+        return nothing
+    end
+
+    try
+        _with_suspended_tui(() -> _open_editor(path, Int(def.line)), m)
+    catch
+        m.notice = "Could not launch the editor."
+    end
+
     return nothing
 end
 

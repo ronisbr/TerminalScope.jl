@@ -54,10 +54,13 @@ using TerminalScope
 
 Each mode opens a full-screen viewer that takes over the terminal until the user quits
 with the `q` key. The main view shows the frame list on the left and the source code of
-the selected row — updated live while navigating — on the right. The viewers support
-the mouse (the wheel scrolls the hovered panel and a click selects a row), vim-style
-navigation keys, and whole-tree frame search with the `/` key. Press `?` inside the
-viewer for the complete set of key bindings.
+the selected row — updated live while navigating — on the right. On terminals with
+Kitty graphics or Sixel support, a heat-colored flame graph of the whole profile is
+drawn along the bottom of the screen, following (and clickable to change) the current
+selection. The viewers support the mouse (the wheel scrolls the hovered panel and a
+click selects a row), vim-style navigation keys, whole-tree frame search with the `/`
+key, a flat self-time ranking with the `s` key, and jumping to the editor with the `e`
+key. Press `?` inside the viewer for the complete set of key bindings.
 
 ## Documentation
 

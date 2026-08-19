@@ -151,5 +151,6 @@ end
     tview(m, frame)
     @test find_text(tb, "flat self-time view") !== nothing
     @test find_text(tb, "flame-graph panel") !== nothing
+    @test find_text(tb, "in the editor") !== nothing
     update!(m, KeyEvent(:escape))
 end

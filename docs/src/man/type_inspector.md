@@ -51,6 +51,7 @@ centers the line of the selected call site.
 
 - `Enter` / `→` descends into the selected call site;
 - `Backspace` / `←` ascends back to the caller;
+- `e` opens the inspected method in the editor at its definition;
 - `q` / `Esc` closes the inspector, returning to the view it was opened from.
 
 The header shows the inspected method, its inferred return type, the descend depth, and

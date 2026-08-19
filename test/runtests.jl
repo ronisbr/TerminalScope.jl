@@ -162,6 +162,10 @@ end
     include("./flat_view.jl")
 end
 
+@testset "Editor Jump" verbose = true begin
+    include("./editor_jump.jl")
+end
+
 if CTHULHU_AVAILABLE
     @testset "Type Inspector" verbose = true begin
         include("./type_inspector.jl")
