@@ -69,6 +69,8 @@ draw a flame graph of the **whole profile** along the bottom of the screen: the 
 the bottom, the call stacks growing upward, and each frame's width proportional to its
 inclusive cost.
 
+![Flame graph](../assets/screenshots/flame_graph.png)
+
 The colors carry the measurements and the navigation state:
 
 - Each frame is heat-colored by its share of the total cost, on a muted ramp from sand

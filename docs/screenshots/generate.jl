@@ -151,6 +151,12 @@ const CELL_W = _FONT_CHOICE[2]
 isempty(FONT_PATH) &&
     error("No monospace font found. Extend the _FONT_CANDIDATES list in $(@__FILE__).")
 
+# Render the flame-graph panel into the screenshots: headless runs detect no graphics
+# protocol, so force the Kitty one, and size the pixel buffers with the cell size of the
+# rasterizer so the recorded pixel snapshots overlay the rasterized grid 1:1.
+Tachikoma.GRAPHICS_PROTOCOL[] = Tachikoma.gfx_kitty
+Tachikoma.CELL_PX[] = (w = CELL_W, h = CELL_H)
+
 ############################################################################################
 #                                     Sample Workload                                      #
 ############################################################################################
@@ -339,7 +345,9 @@ _rgb(r::Integer, g::Integer, b::Integer) =
 Render one frame of the model `m` under the `theme` variant and rasterize it with
 [`FONT_PATH`](@ref) to `OUT_DIR/name.png` (a single-frame APNG, which every viewer
 displays as a still PNG), padded with a background-colored border of [`BORDER`](@ref)
-pixels.
+pixels. The pixel snapshots recorded by the graphics panels (the flame graph) are
+composited over the rasterized cells, exactly like the Kitty protocol draws them over
+the text.
 """
 function render_png(m, name::String; theme::Symbol = :dark)
     set_theme!(theme === :dark ? TS.SCOPE_DARK_THEME : TS.SCOPE_LIGHT_THEME)
@@ -381,9 +389,28 @@ function render_png(m, name::String; theme::Symbol = :dark)
         default_fg = fg,
     )
 
-    # The APNG writer stores the pixels uncompressed; pad the single frame with a
+    # The APNG writer stores the pixels uncompressed; composite the pixel snapshots of
+    # the graphics panels (the flame graph) over the rasterized cells — like the Kitty
+    # protocol draws its images over the text, and since the Tachikoma exporter cannot
+    # overlay RGBA snapshots itself — then pad the single frame with a
     # background-colored border and re-encode it as a plain compressed PNG.
     img = PNGFiles.load(path)
+
+    for (row, col, pixels) in frame.pixel_snapshots
+        py0 = (row - 1) * CELL_H
+        px0 = (col - 1) * CELL_W
+        ph, pw = size(pixels)
+
+        for sy in 1:ph, sx in 1:pw
+            ty = py0 + sy
+            tx = px0 + sx
+            ((1 <= ty <= size(img, 1)) && (1 <= tx <= size(img, 2))) || continue
+            p = pixels[sy, sx]
+            (p.a == 0x00) && continue
+            img[ty, tx] = convert(eltype(img), _rgb(p.r, p.g, p.b))
+        end
+    end
+
     padded = fill(convert(eltype(img), bg), size(img) .+ 2 * BORDER)
     padded[(BORDER + 1):(end - BORDER), (BORDER + 1):(end - BORDER)] .= img
     PNGFiles.save(path, padded)
@@ -588,6 +615,15 @@ render_png(TS.inference_viewer(tinf), "inference_profile")
 # == Runtime Profile =======================================================================
 
 render_png(runtime_viewer(), "runtime_profile")
+
+# == Flame Graph ===========================================================================
+
+# Descend into the orbit propagation chain, so the screenshot shows the emphasized
+# root-to-current path, the dimmed side branches, and the selection highlight of the
+# flame graph.
+m = runtime_viewer()
+_key!(m, :enter)
+render_png(m, "flame_graph")
 
 # == Allocation Profile ====================================================================
 
