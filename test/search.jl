@@ -96,3 +96,41 @@
     @test style_at(tb, 3, 30).fg == TS.tstyle(:text).fg
     update!(m, KeyEvent(:escape))
 end
+
+@testset "Regex Search" begin
+    m = make_model()
+    m.visible_h = 10
+
+    # Anchors restrict the match to the name: "f" alone also matches the location
+    # missing_file.jl of the frame m, while "^f$" matches only the frame f.
+    @test length(TS._search_matches(m.root, "f")) == 2
+    @test length(TS._search_matches(m.root, "^f\$")) == 1
+
+    # The regex path stays case-insensitive, and alternations work.
+    @test length(TS._search_matches(m.root, "^H\$")) == 1
+    @test length(TS._search_matches(m.root, "^(f|k)\$")) == 2
+
+    # A dot matches any character in a valid pattern.
+    @test length(TS._search_matches(m.root, "missing.file")) == 1
+
+    # An invalid pattern falls back to a case-insensitive substring match instead of
+    # throwing: "([" matches nothing here, and the prompt flow reports it.
+    cur = m.current
+    update!(m, KeyEvent(:char, '/'))
+
+    for c in "(["
+        update!(m, KeyEvent(:char, c))
+    end
+
+    update!(m, KeyEvent(:enter))
+    @test isempty(m.search_matches)
+    @test occursin("No frames match", m.notice)
+    @test m.current === cur
+
+    # The substring fallback still finds frames whose names contain regex
+    # metacharacters.
+    ND = FlameGraphs.NodeData
+    root = Node(ND(Base.StackTraces.UNKNOWN, 0x00, 1:10))
+    addchild(root, ND(_sf(Symbol("f[1]"), Symbol(@__FILE__), 10), 0x00, 1:10))
+    @test length(TS._search_matches(TS.build_tree(root), "f[")) == 1
+end

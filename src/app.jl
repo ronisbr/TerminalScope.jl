@@ -713,22 +713,44 @@ function _update_search!(m::ProfileViewer, evt::KeyEvent)
 end
 
 """
+    _search_predicate(query::String) -> Function
+
+Return a predicate `s::String -> Bool` matching `query` against a string. The query is
+compiled as a case-insensitive regular expression; when it is not a valid pattern, the
+predicate falls back to a case-insensitive substring match.
+"""
+function _search_predicate(query::String)
+    re = try
+        Regex(query, "i")
+    catch err
+        # An invalid pattern raises `ErrorException` (PCRE compilation error) on the
+        # string constructor path, and `ArgumentError` on the option-validation path.
+        (err isa Union{ArgumentError, ErrorException}) || rethrow()
+        nothing
+    end
+
+    (re !== nothing) && return s -> occursin(re, s)
+
+    q = lowercase(query)
+    return s -> occursin(q, lowercase(s))
+end
+
+"""
     _search_matches(root::PVNode, query::String) -> Vector{PVNode}
 
-Return the frames of the tree rooted at `root` whose name or location contains `query`
-(case-insensitively), in depth-first order. The aggregate root row is never matched, and
-an empty `query` matches nothing.
+Return the frames of the tree rooted at `root` whose name or location matches `query`,
+in depth-first order. The query is a case-insensitive regular expression, falling back
+to a case-insensitive substring match when it is not a valid pattern (see
+[`_search_predicate`](@ref)). The aggregate root row is never matched, and an empty
+`query` matches nothing.
 """
 function _search_matches(root::PVNode, query::String)
     matches = PVNode[]
     isempty(query) && return matches
-    q = lowercase(query)
+    pred = _search_predicate(query)
 
     function visit(node::PVNode)
-        if !is_tree_root(node) && (
-            occursin(q, lowercase(node_name(node))) ||
-            occursin(q, lowercase(node_location(node)))
-        )
+        if !is_tree_root(node) && (pred(node_name(node)) || pred(node_location(node)))
             push!(matches, node)
         end
 

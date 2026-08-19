@@ -32,7 +32,7 @@ the movement keys act on the focused one.
 | `+` / `-`         | Maximize / restore the focused panel                          |
 | `0` / `$`         | Source panel: go to the line start / end                      |
 | `^D` / `^U`       | Source panel: scroll half a page                              |
-| `/`               | Search frames in the whole tree (case-insensitive)            |
+| `/`               | Search frames in the whole tree (case-insensitive regex)      |
 | `n` / `N`         | Jump to the next / previous search match                      |
 | `i`               | Inspect the selected frame for type instabilities             |
 | `u`               | Allocations: toggle between bytes and allocation counts       |
@@ -59,10 +59,13 @@ line:
 ![Search prompt](../assets/screenshots/search_prompt.png)
 
 Confirming with `Enter` collects every frame of the **whole profile tree** whose name or
-source location contains the query (case-insensitively) and navigates the viewer to the
-first match — descending or ascending levels as needed, with the cursor placed on the
-matching row. `n` and `N` then cycle through the matches, wrapping around, while the
-status bar reports the current position:
+source location matches the query and navigates the viewer to the first match —
+descending or ascending levels as needed, with the cursor placed on the matching row.
+The query is a case-insensitive regular expression, so `^step!$` matches a frame name
+exactly and `solve|integrate` matches either name; a query that is not a valid pattern
+(e.g. an unbalanced `[`) falls back to a plain case-insensitive substring match. `n` and
+`N` then cycle through the matches, wrapping around, while the status bar reports the
+current position:
 
 ![Search match](../assets/screenshots/search_results.png)
 
