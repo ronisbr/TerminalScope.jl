@@ -87,6 +87,8 @@ Store the state of the interactive profile viewer application.
     in depth-first order.
 - `search_idx::Int`: Index of the current match in `search_matches`, or `0` before the
     first jump.
+- `flame::FlameState`: State of the flame-graph panel shown at the bottom of the main
+    view on terminals with a graphics protocol.
 - `flat::Bool`: Whether the frame list shows the flat self-time view instead of the
     level drill-down (toggled with the `s` key).
 - `flat_targets::Vector{PVNode}`: Hottest tree occurrence of each flat row, parallel to
@@ -126,6 +128,7 @@ mutable struct ProfileViewer <: Model
     search_query::String
     search_matches::Vector{PVNode}
     search_idx::Int
+    flame::FlameState
     flat::Bool
     flat_targets::Vector{PVNode}
     flat_return::Union{Nothing, Tuple{PVNode, Union{PVNode, Nothing}}}
@@ -215,6 +218,7 @@ function _viewer(
         "",
         PVNode[],
         0,
+        FlameState(),
         false,
         PVNode[],
         nothing,
@@ -511,7 +515,8 @@ the tree, and the source panel scrolls the code. `+` and `-` grow and shrink the
 panel one step at a time, up to maximizing it (see [`zoom!`](@ref)), and Esc restores
 the default split. `/` opens the frame search prompt, and `n` / `N` jump between the
 matches (see [`_search!`](@ref)). `s` toggles the flat self-time view (see
-[`enter_flat!`](@ref)).
+[`enter_flat!`](@ref)), and `f` toggles the flame-graph panel (see
+[`toggle_flame!`](@ref)).
 """
 function _update_tree!(m::ProfileViewer, evt::KeyEvent)
     is_char(c::Char) = (evt.key == :char) && (evt.char == c)
@@ -551,6 +556,9 @@ function _update_tree!(m::ProfileViewer, evt::KeyEvent)
 
     elseif is_char('u')
         toggle_alloc_unit!(m)
+
+    elseif is_char('f')
+        toggle_flame!(m)
 
     elseif is_char('s')
         m.flat ? leave_flat!(m) : enter_flat!(m)
@@ -1031,7 +1039,8 @@ end
 
 Process the mouse event `evt` for the main view, mutating the model `m`. `press` tells
 whether the event is a left press and `wheel` carries the vertical scroll direction (see
-[`update!`](@ref)).
+[`update!`](@ref)). Over the flame-graph panel, the wheel ascends and descends the tree,
+and a click selects the clicked frame rectangle (see [`_flame_click!`](@ref)).
 """
 function _mouse_tree!(m::ProfileViewer, evt::MouseEvent, press::Bool, wheel::Int)
     if _rect_contains(m.list_rows_rect, evt.x, evt.y)
@@ -1049,6 +1058,15 @@ function _mouse_tree!(m::ProfileViewer, evt::MouseEvent, press::Bool, wheel::Int
     elseif _rect_contains(m.code_rect, evt.x, evt.y)
         m.tree_focus = :code
         (wheel != 0) && detail_scroll!(m.detail, 3 * wheel, 0)
+    elseif _rect_contains(m.flame.rect, evt.x, evt.y)
+        m.tree_focus = :list
+
+        if wheel != 0
+            (wheel < 0) ? ascend!(m) : descend!(m)
+        elseif press
+            node = _flame_node_at(m, evt.x, evt.y)
+            (node !== nothing) && _flame_click!(m, node)
+        end
     end
 
     return nothing

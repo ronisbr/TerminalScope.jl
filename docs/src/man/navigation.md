@@ -16,6 +16,9 @@ panel on the right, updated live while navigating.
 - **`[2] Source`**: A compact information strip (name, tags, costs, and method signature)
   above the syntax-highlighted source of the selected row, with the frame line marked
   with `▶`.
+- **Flame Graph**: On terminals supporting a graphics protocol (Kitty graphics or
+  Sixel), a flame graph of the whole profile is drawn along the bottom of the screen
+  (see [Flame Graph](@ref man_flame_graph)).
 
 The panels are numbered like in LazyGit: the number keys jump straight to a panel, and
 the movement keys act on the focused one.
@@ -35,6 +38,7 @@ the movement keys act on the focused one.
 | `/`               | Search frames in the whole tree (case-insensitive regex)      |
 | `n` / `N`         | Jump to the next / previous search match                      |
 | `s`               | Toggle the flat self-time view                                |
+| `f`               | Toggle the flame-graph panel (graphics terminals)             |
 | `i`               | Inspect the selected frame for type instabilities             |
 | `u`               | Allocations: toggle between bytes and allocation counts       |
 | `?`               | Toggle the help dialog                                        |
@@ -51,6 +55,33 @@ The mouse is supported as well: the wheel scrolls the panel under the cursor —
 the selection in the lists and the view in the code panes — and a left click focuses the
 clicked panel, moving the selection to the clicked row. Clicking the selected row again
 enters it, and a click closes the help dialog.
+
+Over the flame-graph panel, a click selects the clicked frame rectangle in the frame
+list — and clicking the selected rectangle again enters it — while the wheel ascends and
+descends the tree.
+
+## [Flame Graph](@id man_flame_graph)
+
+When the terminal supports a graphics protocol — Kitty graphics (Kitty, Ghostty) or
+Sixel (WezTerm, iTerm2, foot, mlterm) — the runtime, allocation, and inference viewers
+draw a flame graph of the **whole profile** along the bottom of the screen: the root at
+the bottom, the call stacks growing upward, and each frame's width proportional to its
+inclusive cost.
+
+The colors carry the measurements and the navigation state:
+
+- Each frame is heat-colored by its share of the total cost, on a muted ramp from sand
+  (cheap) through amber to brick red (hot), adapted to the dark and light themes.
+- The row selected in the frame list is filled with the theme primary color (cyan), so
+  the flame graph always shows where the selection sits in the global picture.
+- The path from the root to the current drill-down level is drawn at full heat with a
+  bright line along its lower edge, and the current subtree keeps its full heat, while
+  the rest of the tree is dimmed toward the background.
+
+When the tree is deeper than the panel fits, a dashed strip along the top edge signals
+the truncated levels. The `f` key hides and restores the panel, and it disappears
+automatically while a panel is maximized with `+`. On terminals without graphics
+support, the panel is hidden entirely and the viewers keep the two-panel layout.
 
 ## Flat Self-Time View
 

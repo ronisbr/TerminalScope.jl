@@ -50,6 +50,11 @@ Pressing `i` on an invalidated instance opens the [Type Inspector](@ref man_type
 on it, so the loose type that made the code vulnerable to invalidation can be found
 immediately.
 
+!!! note
+
+    Since the invalidation counts are not a cost distribution, this viewer has neither
+    the flame-graph panel nor the flat self-time view of the profile viewers.
+
 ## Viewing Collected Data
 
 ```julia

@@ -22,6 +22,7 @@ const HELP_ENTRIES = (
     (:tree, "n / N", "Jump to the next / previous match"),
     (:tree, "i", "Inspect type instabilities"),
     (:tree, "s", "Toggle the flat self-time view"),
+    (:tree, "f", "Toggle the flame-graph panel"),
     (:tree, "u", "Toggle bytes / allocs (allocations)"),
     (:tree, "q", "Quit the application"),
     (:inspect, "↑ / ↓", "Select a call site"),
@@ -72,7 +73,7 @@ function view(m::ProfileViewer, f::Frame)
         render_inspect!(m, buf, rects[2])
     else
         render_header!(m, buf, rects[1])
-        render_main!(m, buf, rects[2])
+        render_main!(m, f, rects[2])
     end
 
     render_status!(m, buf, rects[3])
@@ -242,16 +243,21 @@ function tree_columns(row_w::Int, count_w::Int)
 end
 
 """
-    render_main!(m::ProfileViewer, buf::Buffer, rect::Rect) -> Nothing
+    render_main!(m::ProfileViewer, f::Frame, rect::Rect) -> Nothing
 
-Render the main view into `buf` inside `rect`: the frame list on the left and the source
-panel of the selected row on the right. Each zoom step moves the split toward the zoomed
-panel, regardless of the focus; at the last step only the focused panel renders, filling
-the whole `rect`.
+Render the main view into `f` inside `rect`: the frame list on the left, the source
+panel of the selected row on the right, and, on terminals with a graphics protocol, the
+flame-graph panel along the bottom (see [`render_flame_panel!`](@ref)). Each zoom step
+moves the split toward the zoomed panel, regardless of the focus; at the last step only
+the focused panel renders, filling the whole `rect` and hiding the flame graph. The
+flame graph is also hidden while the help dialog is open, since the Kitty protocol
+draws images above the text and the dialog can overlap the panel.
 """
-function render_main!(m::ProfileViewer, buf::Buffer, rect::Rect)
+function render_main!(m::ProfileViewer, f::Frame, rect::Rect)
+    buf = f.buffer
     m.list_rows_rect = Rect()
     m.code_rect = Rect()
+    m.flame.rect = Rect()
 
     if m.zoom >= ZOOM_MAX
         if m.tree_focus === :list
@@ -263,13 +269,30 @@ function render_main!(m::ProfileViewer, buf::Buffer, rect::Rect)
         return nothing
     end
 
+    show_flame = flame_active(m) && !m.help && (rect.height >= 16)
+    main = rect
+    flame_rect = Rect()
+
+    if show_flame
+        flame_h = clamp(rect.height ÷ 4, 6, 12)
+        rows = split_layout(Layout(Vertical, [Fill(), Fixed(flame_h)]), rect)
+
+        if length(rows) >= 2
+            main = rows[1]
+            flame_rect = rows[2]
+        else
+            show_flame = false
+        end
+    end
+
     # Each intermediate zoom step moves the split by 15% toward the zoomed panel.
     list_pct = 45 + 15 * (m.zoom_panel === :list ? m.zoom : -m.zoom)
-    cols = split_layout(Layout(Horizontal, [Percent(list_pct), Fill()]), rect)
+    cols = split_layout(Layout(Horizontal, [Percent(list_pct), Fill()]), main)
     (length(cols) < 2) && return nothing
 
     render_tree!(m, buf, cols[1]; focused = m.tree_focus === :list)
     render_source_panel!(m, buf, cols[2]; focused = m.tree_focus === :code)
+    show_flame && render_flame_panel!(m, f, flame_rect)
     return nothing
 end
 
@@ -553,6 +576,7 @@ function render_status!(m::ProfileViewer, buf::Buffer, rect::Rect)
             "?" => "help",
             "q" => "quit",
         ]
+        flame_available(m) && insert!(hints, 8, "f" => "flame")
         ((m.unit === :bytes) || (m.unit === :allocs)) &&
             insert!(hints, 6, "u" => m.unit === :bytes ? "by allocs" : "by memory")
         hints

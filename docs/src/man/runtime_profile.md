@@ -52,6 +52,13 @@ The rows are tagged according to the frame kind:
 The header additionally aggregates the samples spent in type inference, so compilation
 inside the profiled expression is visible at a glance.
 
+## Flame Graph
+
+On terminals supporting Kitty graphics or Sixel, a heat-colored flame graph of the whole
+profile is drawn along the bottom of the screen, following the selection in the frame
+list. See [Flame Graph](@ref man_flame_graph) for the color coding, the mouse
+navigation, and the `f` toggle.
+
 ## Viewing Collected Data
 
 The function form opens the viewer on data collected by `Profile.@profile` (or on a

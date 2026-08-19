@@ -154,6 +154,10 @@ end
     include("./rendering.jl")
 end
 
+@testset "Flame Graph" verbose = true begin
+    include("./flame_graph.jl")
+end
+
 @testset "Flat Self-Time View" verbose = true begin
     include("./flat_view.jl")
 end

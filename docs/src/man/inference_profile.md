@@ -20,6 +20,10 @@ navigated exactly like a runtime profile. The value of `expr` is discarded.
 The times scale automatically from minutes down to microseconds and nanoseconds, so fast
 inference frames keep a meaningful cost instead of rounding to zero.
 
+Like the runtime profile, the viewer supports the flat self-time view (`s`) and, on
+graphics terminals, draws a flame graph of the inference tree along the bottom of the
+screen (see [Flame Graph](@ref man_flame_graph)).
+
 !!! note
 
     To capture the inference cost of the first call, `expr` must contain code that has

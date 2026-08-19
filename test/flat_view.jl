@@ -51,8 +51,11 @@ end
     @test length(m.flat_targets) == 4
     @test m.tree_focus === :list
 
-    # Enter jumps into the tree view at the hottest occurrence.
+    # The flame graph highlights the hottest tree occurrence of the selected row.
     h = m.root.children[1].children[1].children[1]
+    @test TS._flame_selected(m) === h
+
+    # Enter jumps into the tree view at the hottest occurrence.
     update!(m, KeyEvent(:enter))
     @test !m.flat
     @test isempty(m.flat_targets)
@@ -147,5 +150,6 @@ end
     Tachikoma.reset!(tb.buf)
     tview(m, frame)
     @test find_text(tb, "flat self-time view") !== nothing
+    @test find_text(tb, "flame-graph panel") !== nothing
     update!(m, KeyEvent(:escape))
 end

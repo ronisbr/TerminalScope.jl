@@ -98,6 +98,27 @@ PrecompileTools.@setup_workload begin
         update!(m, KeyEvent(:enter))
         view(m, frame)
 
+        # Flame-graph panel: span layout, painting, hit-testing, and the visibility
+        # toggle, under a forced graphics protocol since none is detected headlessly.
+        _pc_gfx = Tachikoma.GRAPHICS_PROTOCOL[]
+        Tachikoma.GRAPHICS_PROTOCOL[] = Tachikoma.gfx_kitty
+
+        try
+            _pc_frame = Tachikoma.Frame(
+                tb.buf,
+                Rect(1, 1, 100, 30),
+                Tachikoma.GraphicsRegion[],
+                Tachikoma.PixelSnapshot[],
+            )
+            view(m, _pc_frame)
+            update!(m, MouseEvent(50, 26, mouse_left, mouse_press, false, false, false))
+            update!(m, KeyEvent(:char, 'f'))
+            view(m, _pc_frame)
+            update!(m, KeyEvent(:char, 'f'))
+        finally
+            Tachikoma.GRAPHICS_PROTOCOL[] = _pc_gfx
+        end
+
         # Help dialog.
         update!(m, KeyEvent(:char, '?'))
         view(m, frame)

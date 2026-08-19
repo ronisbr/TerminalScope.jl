@@ -43,7 +43,8 @@ allocations" problems are easy to spot.
 Pressing `s` switches to the flat self-time view, ranking the allocating call sites of
 the whole tree by their aggregated cost: the costs of the allocated-type leaves are
 charged to the allocating source frame, so the flat list answers "which line of my code
-allocates" directly.
+allocates" directly. On graphics terminals, a flame graph of the allocation tree is also
+drawn along the bottom of the screen (see [Flame Graph](@ref man_flame_graph)).
 
 Descending past the deepest frame of a branch lists the **allocated types**
 (`Vector{Float64}`, `String`, ...) as leaves with their own costs, so the viewer shows
