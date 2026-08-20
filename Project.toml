@@ -1,6 +1,6 @@
 name = "TerminalScope"
 uuid = "bc14a303-2e4e-4aff-abc0-e6583d5a391b"
-version = "0.0.1"
+version = "0.1.0"
 authors = ["Ronan Arraes Jardim Chagas <ronisbr@gmail.com>"]
 
 [deps]
