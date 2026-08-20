@@ -299,9 +299,9 @@ end
 Repaint the flame graph into the cached pixel buffer of the viewer `m`, mutating
 `m.flame`: the whole tree is drawn from the root at the bottom with the stacks growing
 upward, each frame heat-colored by its share of the total cost (see
-[`_flame_heat`](@ref)). The root-to-current path is drawn at full heat with a bright
-line on its bottom edge, the subtree of the current node at full heat, the remaining
-frames dimmed toward the background, and the highlighted node (see
+[`_flame_heat`](@ref)). The root-to-current path and the subtree of the current node
+are drawn at full heat, the remaining frames dimmed toward the background, and the
+highlighted node (see
 [`_flame_selected`](@ref)) filled with the theme primary color. When the tree is deeper
 than the panel fits, a dashed strip along the top edge signals the truncation.
 """
@@ -344,7 +344,6 @@ function _paint_flame!(m)
     light = light_mode()
     bg_rgb = to_rgb(theme().bg)
     sel_rgb = to_rgb(theme().primary)
-    edge_rgb = to_rgb(theme().text_bright)
 
     for (level, spans) in enumerate(levels)
         y1 = ph - margin - (level - 1) * band_h
@@ -367,11 +366,6 @@ function _paint_flame!(m)
             end
 
             fill_rect!(img, px0, y0, px1, y1, color)
-
-            # Trace the drill-down path with a bright line on the root-facing edge.
-            ((span.flags & FLAME_PATH) != 0) &&
-                (node !== sel) &&
-                fill_rect!(img, px0, y1, px1, y1, edge_rgb)
         end
     end
 
